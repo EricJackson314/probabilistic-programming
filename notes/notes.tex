@@ -1,0 +1,901 @@
+\documentclass{article}
+
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathpartir}
+\usepackage{multicol}
+
+\newtheorem*{theorem}{Theorem}
+\newtheorem*{prop}{Proposition}
+\newtheorem*{definition}{Definition}
+\newtheorem*{lemma}{Lemma}
+\newtheorem*{example}{Example}
+\newtheorem*{remark}{Remark}
+\newtheorem*{claim}{Claim}
+
+\renewcommand\qedsymbol{\bf QED}
+
+\geometry{letterpaper, total={7.5in, 10in}, left=.5in, top=.5in}
+
+\setcounter{secnumdepth}{0}
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\hrule
+	\smallskip
+	\hrule\hrule\hrule
+	\medskip
+	\noindent
+	{\huge \bf Probabilistic Programming}
+	\medskip
+	\newline
+	{\huge \it Research Project}
+
+	\hrule
+	\medskip
+	\noindent
+	{\Large \bf Eric Jackson}
+	\medskip
+	\hrule\hrule\hrule
+	\smallskip
+	\hrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Call By Push Value}
+	\subsection{Types}
+		\begin{equation*}
+			\begin{split}
+				{\bf Val}  &::= {\bf U} B  \,|\, \Sigma_{i \in I} A_i \,|\, {\bf unit}      \,|\, A \times A \\
+				{\bf Comp} &::= {\bf F} A  \,|\, \Pi_{i \in I} B_i    \,|\, {\bf Val} \rightarrow {\bf Comp}                  \\
+				\tau       &::= {\bf Val}  \,|\, {\bf Comp}                                                  \\
+			\end{split}
+		\end{equation*}
+		
+	\subsection{Expressions}
+		\begin{equation*}
+			\begin{split}
+				e ::&=                                   \\
+				    &| \lambda x.\, e                    \\
+				    &| e'\, e                      	 			 \\
+				    &| {\bf produce}\, e                 \\
+ 				    &| {\bf thunk}\, e                   \\
+				    &| {\bf force}\, e	 	                 \\
+				    &| e\, {\bf to}\, x.\, e             \\ 
+				    &| {\bf let}\, x\, {\bf be}\, e.\, e \\
+			\end{split}
+		\end{equation*}
+
+\section{Measure Theory}
+	\begin{definition}[$\sigma$-algebra]
+		A $\sigma$-algebra $\mathcal{B}$ on a set $S$ is a collection of subsets of $S$
+		\begin{itemize}
+			\item containing the empty set $\varnothing$
+			\item closed under complementation in $S$
+			\item closed under countable union in $S$
+		\end{itemize}
+	\end{definition}
+	
+	\begin{definition}[Measurable Space]
+		Let $S$ be a set and $\mathcal{B}$ be a $\sigma$-algebra on $S$.
+		The pair $(S, \mathcal{B})$ is a {\bf measurable space}.
+		The elements of $\mathcal{B}$ are called {\bf measurable sets} of $S$.
+	\end{definition}
+	
+	\begin{remark}[Probability]
+		In probability theory, 
+		$S$ can be thought of as the set of {\it outcomes}
+		$\mathcal{B}$ can be thought as the set of {\it events}. 
+	\end{remark}
+
+	\begin{definition}[Measurable Functions]
+		Let $(S, \mathcal{B}_S)$ and $(T, \mathcal{B}_T)$ be measurable spaces.
+		A function $f : S \to T$ is {\bf measurable} if the inverse image
+		$$ f^{-1}(B) = \{ x \in S | f(x) \in B \} $$
+		of every measurable subset $B \in \mathcal{B}_T$ is a measurable subset of $S$.
+	\end{definition}
+
+	\begin{definition}[Countably Additive]
+		A function $\mu : \mathcal{B} \to \mathbb{R}$ is {\bf countably additive}
+		if $\mathcal{A}$ is a countable set of pairwise disjoint events,
+		then $\mu(\bigcup \mathcal{A}) = \sum_{A \in \mathcal{A}} \mu(A)$.
+		Equivalently, if $A_0, A_1, A_2,\dots$ is a countable collection of measurable sets
+		such that $A_n \subseteq A_{n+1}$ for all $n \geq 0$,
+		then $\lim_n \mu(A_n)$ exists and is equal to $\mu(\bigcup_n A_n)$.
+	\end{definition}
+
+	\begin{definition}[Signed Finite Measure]
+		A {\bf signed finite measure} on $(S, \mathcal{B})$ is a countably additive map
+		$$ \mu : \mathcal{B} \to \mathbb{R} $$
+		such that $\mu(\varnothing) = 0$.	
+	\end{definition}
+
+	\begin{definition}[Product Space]
+		The {\bf product space} of two measurable spaces $(S_1, \mathcal{B}_1)$ and $(S_2, \mathcal{B}_2)$ is $(S_1 \times S_2, \mathcal{B}_1 \otimes \mathcal{B}_2)$
+		where $S_1 \times S_2$ is the Cartesian product and
+		$\mathcal{B}_1 \otimes \mathcal{B}_2 \triangleq \sigma(\{ B_1 \times B_2 | B_1 \in \mathcal{B}_1,\, B_2 \in \mathcal{B}_2\})$.
+		
+	\end{definition}
+	
+\section{Probabilistic Imp}
+	\subsection{Syntax}
+	\begin{equation*}
+		\begin{split}
+			d ::
+			=\,& a \\ 
+			|\,& x \\
+			|\,& d \text{ \bf op } d \\
+			\,\\
+			t ::
+			=\,& d \\
+			|\,& \text{\bf coin () } \\
+			|\,& \text{\bf rand () } \\
+			|\,& t \text{ \bf op } d \\
+			\,\\
+			b ::
+			=\,& \text{\bf true} \\
+			|\,& \text{\bf false} \\
+			|\,& d == d \\
+			|\,& d < d \\
+			|\,& d > d \\
+			|\,& b \text{ \&\& } b \\
+			|\,& b \,||\, b \\
+			|\,& !b \\
+			\,\\
+			e ::
+			=\,& \text{\bf skip} \\
+			|\,& x := t \\
+			|\,& e; e \\
+			|\,& \text{\bf if } b \text{ \bf then } e \text{ \bf else } e \\
+			|\,& \text{\bf while } b \text{ \bf do } e \\
+		\end{split}
+	\end{equation*}
+	
+	\subsection{Small Step Semantics}
+	\subsubsection{$[\![t]\!] : \mathbb{R}^n \times {0, 1}^\omega \times [0,1]^\omega \to \mathbb{R} \times {0, 1}^\omega \times [0,1]^\omega $}
+	\begin{equation*}
+		\begin{split}
+			[\![ a ]\!] : (s, m, p) 
+			&\triangleq (a, m, p) \\
+			[\![ x_i ]\!] : (s, m, p) 
+			&\triangleq (s(i), m, p) \\
+			[\![ \text{\bf coin ()} ]\!] : (s, m, p) 
+			&\triangleq (\text{\bf hd } m, \text{\bf tl } m ,p)\\
+			[\![ \text{\bf rand ()} ]\!] : (s, m, p) 
+			&\triangleq (\text{\bf hd } p, m, \text{\bf tl } p) \\
+			[\![ t \text{ \bf op } t ]\!] : (s, m, p) 
+			&\triangleq \\
+		\end{split}
+	\end{equation*}
+	
+	\section{Denotational Semantics}
+			\begin{definition}
+			$T_B : \mathcal{M}\mathbb{R}^n \to \mathcal{M}\mathbb{R}^n$ given by
+			\begin{equation*}
+				T_B = \lambda x.\, \mu(B \cap x)
+			\end{equation*}
+		\end{definition}
+	
+		\begin{equation*}
+			\begin{split}
+				[\![ {\bf skip} ]\!]
+				&\triangleq \text{Id}_{\mathcal{M}\mathbb{R}^n} \\
+				[\![ x_i := t]\!]
+				&\triangleq \mu \mapsto (F_t^i)_*(\mu) \\
+				[\![ e_1; e_2 ]\!]
+				&\triangleq [\![e_2]\!] \circ [\![e_1]\!] \\
+				[\![ \text{\bf if } b \text{ \bf then } e_1 \text{ \bf else } e_2 ]\!]
+				&\triangleq [\![e_1]\!] \circ T_{[\![b]\!]} + [\![e_2]\!] \circ T_{[\![b]\!]^C}\\
+				[\![\text{\bf while } b \text{ \bf do } e ]\!] 
+				&\triangleq \bigvee_{n \geq 0} \tau^n(0)
+				\hspace{1in}\mbox{ where } \tau(S) = S \circ [\![e]\!] \circ T_{[\![b]\!]} + T_{[\![b]\!]^C}\\
+			\end{split}
+		\end{equation*}
+		
+		\subsection{Example 1}		
+		\begin{equation*}
+			\begin{split}
+				[\![ \text{\bf if } 1==1 \text{ \bf then } x:=0 \text{ \bf else } x:=1 ]\!] 
+				&= [\![x:=0]\!] \circ T_{[\![1==1]\!]} + [\![x:=1]\!] \circ T_{[\![1==1]\!]^C} \\
+				&= [\![x:=0]\!] \circ T_{\mathbb{R}} + [\![x:=1]\!] \circ T_{\varnothing} \\
+				&= [\![x:=0]\!] \circ (\mu \mapsto \lambda x.\, \mu(x \cap \mathbb{R})) + [\![x:=1]\!] \circ (\mu \mapsto \lambda x.\, \mu(x \cap \varnothing)) \\
+				&= (\mu \mapsto \mu(\mathbb{R})\delta_0) \circ (\mu \mapsto \mu) + (\mu \mapsto \mu(\mathbb{R})\delta_1) \circ (\mu \mapsto \lambda x.\, \mu(\varnothing))  \\
+				&= \mu \mapsto \mu(\mathbb{R})\delta_0 + \mu(\varnothing)\delta_1 \\
+				[\![ \text{\bf if } 1==1 \text{ \bf then } x:=0 \text{ \bf else } x:=1 ]\!] 
+				&= \mu \mapsto \mu(\mathbb{R})\delta_0 \\
+			\end{split}
+		\end{equation*}
+		
+		\subsection{Example 2}
+		\begin{equation*}
+			\begin{split}
+				[\![ x := 1; y := 2 ]\!]&= [\![y := 2]\!] \circ [\![x := 1]\!] \\
+				&= (\mu \mapsto \lambda (B_1,  B_2).\, \mu(B_1 \times \mathbb{R})\delta_2(B_2)) \circ (\mu \mapsto \lambda (B_1,  B_2).\, \mu(\mathbb{R} \times B_2)\delta_1(B_1)) \\
+				&= \mu \mapsto \lambda (B_1, B_2).\, \mu(\mathbb{R}^2) \delta_1(B_1)\delta_2(B_2) \\
+			\end{split}
+		\end{equation*}
+		
+		\begin{equation*}
+			\begin{split}
+				[\![ y := 2; x := 1 ]\!]&= [\![x := 1]\!] \circ [\![y := 2]\!] \\
+				&= (\mu \mapsto \lambda (B_1,  B_2).\, \mu(\mathbb{R} \times B_2)\delta_1(B_1)) \circ (\mu \mapsto \lambda (B_1,  B_2).\, \mu(B_1 \times \mathbb{R})\delta_2(B_2)) \\
+				&= \mu \mapsto \lambda (B_1, B_2).\, \mu(\mathbb{R}^2) \delta_1(B_1)\delta_2(B_2) \\
+			\end{split}
+		\end{equation*}
+		
+		\subsection{Example 3}
+		\begin{claim}
+			\begin{equation*}
+				[\![\text{ \bf while } x == 0 \text{ \bf do } x := { \bf coin()}]\!] 
+				= \mu \mapsto \mu(\{0, 1\})\delta_1 + \mu(- \cap \{0, 1\}^C)
+			\end{equation*}
+		\end{claim}
+		\begin{proof}
+			I will show by induction that for all $k \geq 1$,
+			\begin{equation*}
+				\tau^k(0) = \mu \mapsto \mu(- \cap \{0\}^C) + (1 - 2^{-(k-1)})\mu(\{0\})\delta_1
+			\end{equation*}
+			If we then take the limit as $k \to \infty$, we get
+			\begin{equation*}
+				\mu \mapsto \mu(- \cap \{0\}^C) + \mu(\{0\})\delta_1
+			\end{equation*}
+			\begin{itemize}
+				\item {\bf Base Case:} $\tau^1(0)$ \\
+					\begin{equation*}
+						\begin{split}
+							\tau^1(0) 
+							&= 0 \circ [\![ x := { \bf coin()} ]\!] \circ T_{\{0\}} + T_{\{0\}^C} \\
+							&= T_{\{0\}^C} \\
+							&= \mu \mapsto \mu(- \cap \{0\}^C) \\
+							\tau^1(0) &= \mu \mapsto \mu(- \cap \{0\}^C) + (1 - 2^{-(1-1)})\mu(\{0\})\delta_1
+						\end{split}
+					\end{equation*}
+				\item {\bf Inductive Case:} $\tau^{k + 1}(0)$ \\
+					\begin{equation*}
+						\begin{split}
+							\tau^{k+1}(0) 
+							&= \mu \mapsto \mu(- \cap \{0\}^C) + (1 - 2^{-(k-1)})\mu(\{0\})\delta_1 
+							\circ [\![ x := { \bf coin()} ]\!] 
+							\circ T_{\{0\}} 
+							+ T_{\{0\}^C} \\
+							&= \mu \mapsto \mu(- \cap \{0\}^C) + (1 - 2^{-(k-1)})\mu(\{0\})\delta_1 
+							\circ \mu \mapsto \mu(\mathbb{R})\left(\frac{1}{2}\delta_0 + \frac{1}{2}\delta_1\right) 
+							\circ \mu \mapsto \mu(- \cap \{0\}) 
+							+ T_{\{0\}^C} \\
+							&= \mu \mapsto \mu(- \cap \{0\}^C) + (1 - 2^{-(k-1)})\mu(\{0\})\delta_1 
+							\circ \mu \mapsto \mu(\{0\})\left(\frac{1}{2}\delta_0 + \frac{1}{2}\delta_1\right)
+							+ T_{\{0\}^C} \\
+							&= \mu \mapsto \mu(\{0\})\left(\frac{1}{2}\delta_0 + \frac{1}{2}\delta_1\right)(- \cap \{0\}^C) + (1 - 2^{-(k-1)})\mu(\{0\})\left(\frac{1}{2}\delta_0 + \frac{1}{2}\delta_1\right)(\{0\})\delta_1
+							+ T_{\{0\}^C} \\
+							&= \mu \mapsto \frac{1}{2}\mu(\{0\})\delta_1 + (1 - 2^{-(k-1)})\frac{1}{2}\mu(\{0\})\delta_1
+							+ T_{\{0\}^C} \\
+							&= \mu \mapsto \frac{1}{2}\mu(\{0\})\delta_1 + \frac{1}{2}\mu(\{0\})\delta_1 -  2^{-(k-1)-1}\mu(\{0\})\delta_1
+							+ T_{\{0\}^C} \\
+							&= \mu \mapsto \mu(\{0\})\delta_1 -  2^{-(k)}\mu(\{0\})\delta_1
+							+ T_{\{0\}^C} \\
+							&= \mu \mapsto \mu(- \cap \{0\}^C) + (1-2^{-((k+1) - 1})\mu(\{0\})\delta_1\\
+						\end{split}
+					\end{equation*}
+			\end{itemize}
+		\end{proof}
+		
+		\begin{equation*}
+			\begin{split}
+				[\![ x := 0; \text{ \bf while } x == 0 \text{ \bf do } x := { \bf coin()} ]\!]
+				&= [\![\text{ \bf while } x == 0 \text{ \bf do } x := { \bf coin()} ]\!] \circ [\![ x := 0]\!] \\
+				&= \mu \mapsto \mu(\{0, 1\})\delta_1 + \mu(- \cap \{0, 1\}^C) \circ \mu \mapsto \mu(\mathbb{R})\delta_0 \\
+				&= \mu \mapsto (\mu(\mathbb{R})\delta_0)(\{0, 1\})\delta_1 + (\mu(\mathbb{R})\delta_0)(- \cap \{0, 1\}^C) \\
+				&= \mu \mapsto \mu(\mathbb{R})\delta_1 \\
+			\end{split}
+		\end{equation*}
+
+\newpage
+	\section{Independently and Identically Distributed ($\lambda_{\bf IID}$)}
+		\subsection{Syntax}
+		\begin{multicols}{2}
+			\begin{equation*}
+				\begin{split}
+					e ::=
+					&\, x \\
+					&| () \\
+					&| \lambda x : \tau.\, e \\
+					&| \text{\bf let } x = e_1 \text{ \bf in } e_2 \\
+					&| e_1\, e_2 \\
+					&| r \\
+					&| e_1 \oplus e_2 \\
+					&| {\bf coin()} \\
+					&| {\bf rand()} \\
+					&| \text{\bf case } e_1 \text{ \bf of } e_2 \,|\, e_3 \\
+					&| {\bf inl}_{\tau_1 + \tau_2} e \\
+					&| {\bf inr}_{\tau_1 + \tau_2} e \\
+					&| \text{\bf \#1 } e \\
+					&| \text{\bf \#2 } e \\
+					&| (e_1, e_2) \\
+				\end{split}
+			\end{equation*}			
+		\begin{equation*}
+			\begin{split}
+				\tau ::=
+				&\, {\bf unit} \\
+				&| \mathbb{R} \\
+				&| \tau_1 \to \tau_2 \\
+				&| \tau_1 + \tau_2 \\
+				&| \tau_1 \times \tau_2 \\
+			\end{split}
+		\end{equation*}
+		\begin{equation*}
+			\begin{split}
+				v ::=
+				&\, \lambda x:\tau.\, e \\
+				&| r \\
+				&| (e, e) \\
+			\end{split}
+		\end{equation*}
+		\begin{equation*}
+			\begin{split}
+				E ::=
+				&\, [\cdot] \\
+				&| E\, e \\
+				&| E \oplus e \\
+				&| v \oplus E \\
+				&| (\text{\bf case } E \text{ \bf of } e_2 \,|\, e_3) \\
+				&| {\bf inl}_{\tau_1 + \tau_2} E \\
+				&| {\bf inr}_{\tau_1 + \tau_2} E \\
+				&| \text{\bf \# 1 } E \\
+				&| \text{\bf \# 2 } E \\
+			\end{split}
+		\end{equation*}
+	\end{multicols}
+
+		\subsection{Semantics}
+
+		The small-step step semantics can be modeled by the relation on $(e \times \{0,1\}^\omega \times [0, 1]^\omega) \times  (e \times \{0,1\}^\omega \times [0, 1]^\omega)$ defined below.
+		\begin{multicols}{2}
+% Context 
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Context}]
+				{\langle e,\, n,\, m \rangle \rightarrow \langle e',\, n',\, m' \rangle }
+				{\langle E(e),\, n,\, m\rangle \rightarrow \langle E(e'),\, n',\, m' \rangle}}
+				{}
+			\end{equation*}
+		
+% Beta-Reduction
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc $\beta$-Reduction}]
+				{\,}
+				{\langle(\lambda x : \tau.\, e)\, e_2,\, n,\, m\rangle \rightarrow \langle e\{e_2/x\},\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Let
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Let}]
+				{\,}
+				{\langle\text{\bf let } x = e_1 \text{ \bf in } e_2,\, n,\, m\rangle \rightarrow \langle e_2\{e_1/x\},\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Binary Operations
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Bop}]
+				{r_1 \bar{\oplus} r_2 = r }
+				{\langle r_1 \oplus r_2,\, n,\, m\rangle \rightarrow \langle r,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+		
+% Coin
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Coin}]
+				{\,}
+				{\langle {\bf coin()},\, n,\, m\rangle \rightarrow \langle \text{\bf hd } n,\, \text{\bf tl } n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Rand
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Rand}]
+				{\,}
+				{\langle {\bf rand()},\, n,\, m\rangle \rightarrow \langle \text{\bf hd } m,\, n,\, \text{\bf tl } m \rangle}}
+				{}
+			\end{equation*}
+
+% Case-Left
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case-Left}]
+				{\,}
+				{\langle (\text{\bf case } {\bf inl}_{\tau_1 + \tau_2} e \text{ \bf of } e_2 \,|\, e_3) ,\, n,\, m\rangle \rightarrow \langle e_2\, e,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+% Case-Right
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case-Right}]
+				{\,}
+				{\langle (\text{\bf case } {\bf inr}_{\tau_1 + \tau_2} e \text{ \bf of } e_2 \,|\, e_3) ,\, n,\, m\rangle \rightarrow \langle e_3\, e,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+% Project-1
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Proj-1}]
+				{\,}
+				{\langle \text{\bf \#1 } (e_1, e_2) ,\, n,\, m\rangle \rightarrow \langle e_1,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+% Project-2
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Proj-2}]
+				{\,}
+				{\langle \text{\bf \#2 } (e_1, e_2) ,\, n,\, m\rangle \rightarrow \langle e_2,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+		\end{multicols}
+
+\subsection{Static Semantics}
+	\begin{multicols}{2}
+% Variable
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Var}]
+				{\Gamma(x) = \tau}
+				{\Gamma \vdash  x : \tau}}
+				{}
+			\end{equation*}
+% Unit
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Unit}]
+				{\,}
+				{\Gamma \vdash  () : {\bf unit}}}
+				{}
+			\end{equation*}
+% Function
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Fun}]
+				{\Gamma \vdash e : \tau'}
+				{\Gamma \vdash  (\lambda x : \tau.\, e) : \tau \to \tau'}}
+				{}
+			\end{equation*}
+% Let
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Let}]
+				{\Gamma \vdash e_1 : \tau \\ \Gamma_{x : \tau} \vdash e_2 : \tau'}
+				{\Gamma \vdash  \text{\bf let } x = e_1 \text{ \bf in } e_2 : \tau'}}
+				{}
+			\end{equation*}
+% Application
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc App}]
+				{\Gamma \vdash e_1 : \tau \to \tau' \\ \Gamma\vdash e_2 : \tau}
+				{\Gamma \vdash e_1\, e_2: \tau'}}
+				{}
+			\end{equation*}
+% Number
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Num}]
+				{\,}
+				{\Gamma \vdash  r : \mathbb{R}}}
+				{}
+			\end{equation*}
+% Binary Operation
+% Coin
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Coin}]
+				{\,}
+				{\Gamma \vdash  {\bf coin()} : \mathbb{R}}}
+				{}
+			\end{equation*}
+% Rand
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Rand}]
+				{\,}
+				{\Gamma \vdash  {\bf rand()} : \mathbb{R}}}
+				{}
+			\end{equation*}
+% Case
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case}]
+				{\Gamma \vdash e_1 : \tau_1 + \tau_2 \\ \Gamma \vdash e_2 : \tau_1 \to \tau \\ \Gamma \vdash e_3 : \tau_2 \to \tau }
+				{\Gamma \vdash \text{\bf case } e_1 \text{ \bf with } e_2 \,|\, e_3 : \tau}}
+				{}
+			\end{equation*}
+% In-left
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc In-Left}]
+				{\Gamma \vdash e : \tau_1 }
+				{\Gamma \vdash {\bf inl}_{\tau_1 + \tau_2} e : \tau_1 + \tau_2}}
+				{}
+			\end{equation*}
+% In-right
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc In-Right}]
+				{\Gamma \vdash e : \tau_2 }
+				{\Gamma \vdash {\bf inr}_{\tau_1 + \tau_2} e : \tau_1 + \tau_2}}
+				{}
+			\end{equation*}
+% Proj-1
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc In-Left}]
+				{\Gamma \vdash e : \tau_1 \times \tau_2 }
+				{\Gamma \vdash \text{\bf \# 1 } e : \tau_1}}
+				{}
+			\end{equation*}
+% Proj-2
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc In-Left}]
+				{\Gamma \vdash e : \tau_1 \times \tau_2 }
+				{\Gamma \vdash \text{\bf \# 2 } e : \tau_2}}
+				{}
+			\end{equation*}
+% Pair
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Pair}]
+				{\Gamma \vdash e_1 : \tau_1 \\ \Gamma \vdash e_2 : \tau_2 }
+				{\Gamma \vdash (e_1, e_2) : \tau_1 \times \tau_2}}
+				{}
+			\end{equation*}
+		\end{multicols}
+
+	\subsection{Example 1}
+			\begin{equation*}
+				\begin{split}
+					\langle (\lambda x.\, x + x )\, {\bf coin ()},\, 1::0::n,\, m\rangle
+					&\rightarrow \langle {\bf coin ()} + {\bf coin ()},\, 1::0::n,\, m\rangle \\
+					&\rightarrow \langle 1 + {\bf coin ()},\, 0::n,\, m\rangle \\
+					&\rightarrow \langle 1 + 0,\, n,\, m\rangle \\
+					&\rightarrow \langle 1,\, n,\, m\rangle \\
+				\end{split}
+			\end{equation*}
+
+	\subsection{Example 2}
+			\begin{equation*}
+				\begin{split}
+					\langle \text{\bf let } x = {\bf coin ()} \text{ \bf in } x + x,\, 1::0::n,\, m\rangle
+					&\rightarrow \langle {\bf coin ()} + {\bf coin ()},\, 1::0::n,\, m\rangle \\
+					&\rightarrow \langle 1 + {\bf coin ()},\, 0::n,\, m\rangle \\
+					&\rightarrow \langle 1 + 0,\, n,\, m\rangle \\
+					&\rightarrow \langle 1,\, n,\, m\rangle \\
+				\end{split}
+			\end{equation*}
+			
+\newpage
+	\section{Perfectly Correlated ($\lambda_{\bf PC}$)}
+		\subsection{Syntax}
+		\begin{multicols}{2}
+			\begin{equation*}
+				\begin{split}
+					e ::=
+					&\, x \\
+					&| () \\
+					&| \lambda x : \tau.\, e \\
+					&| \text{\bf let } x = e_1 \text{ \bf in } e_2 \\
+					&| e_1\, e_2 \\
+					&| r \\
+					&| e_1 \oplus e_2 \\
+					&| {\bf coin()} \\
+					&| {\bf rand()} \\
+					&| \text{\bf case } e_1 \text{ \bf of } e_2 \,|\, e_3 \\
+					&| {\bf inl}_{\tau_1 + \tau_2} e \\
+					&| {\bf inr}_{\tau_1 + \tau_2} e \\
+					&| \text{\bf \#1 } e \\
+					&| \text{\bf \#2 } e \\
+					&| (e_1, e_2) \\
+				\end{split}
+			\end{equation*}			
+		\begin{equation*}
+			\begin{split}
+				\tau ::=
+				&\, {\bf unit} \\
+				&| \mathbb{R} \\
+				&| \tau_1 \to \tau_2 \\
+				&| \tau_1 + \tau_2 \\
+				&| \tau_1 \times \tau_2 \\
+			\end{split}
+		\end{equation*}
+		\begin{equation*}
+			\begin{split}
+				v ::=
+				&\, \lambda x:\tau.\, e \\
+				&| r \\
+				&| (v, v) \\
+			\end{split}
+		\end{equation*}
+		\begin{equation*}
+			\begin{split}
+				E ::=
+				&\, [\cdot] \\
+				&| E\, e \\
+				&| v\, E \\
+				&| \text{\bf let } x = E \text{ \bf in } e_2 \\
+				&| E \oplus e \\
+				&| v \oplus E \\
+				&| (\text{\bf case } E \text{ \bf of } e_2 \,|\, e_3) \\
+				&| {\bf inl}_{\tau_1 + \tau_2} E \\
+				&| {\bf inr}_{\tau_1 + \tau_2} E \\
+				&| \text{\bf \# 1 } E \\
+				&| \text{\bf \# 2 } E \\
+				&| (E, e) \\
+				&| (v, E) \\
+			\end{split}
+		\end{equation*}
+	\end{multicols}
+
+		\subsection{Semantics}
+
+		The small-step step semantics can be modeled by the relation on $(e \times \{0,1\}^\omega \times [0, 1]^\omega) \times  (e \times \{0,1\}^\omega \times [0, 1]^\omega)$ defined below.
+		\begin{multicols}{2}
+% Context 
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Context}]
+				{\langle e,\, n,\, m \rangle \rightarrow \langle e',\, n',\, m' \rangle }
+				{\langle E(e),\, n,\, m\rangle \rightarrow \langle E(e'),\, n',\, m' \rangle}}
+				{}
+			\end{equation*}
+		
+% Beta-Reduction
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc $\beta$-Reduction}]
+				{\,}
+				{\langle(\lambda x : \tau.\, e)\, v,\, n,\, m\rangle \rightarrow \langle e\{v/x\},\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Let
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Let}]
+				{\,}
+				{\langle\text{\bf let } x = v \text{ \bf in } e_2,\, n,\, m\rangle \rightarrow \langle e_2\{v/x\},\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Binary Operations
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Bop}]
+				{r_1 \bar{\oplus} r_2 = r }
+				{\langle r_1 \oplus r_2,\, n,\, m\rangle \rightarrow \langle r,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+		
+% Coin
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Coin}]
+				{\,}
+				{\langle {\bf coin()},\, n,\, m\rangle \rightarrow \langle \text{\bf hd } n,\, \text{\bf tl } n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Rand
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Rand}]
+				{\,}
+				{\langle {\bf rand()},\, n,\, m\rangle \rightarrow \langle \text{\bf hd } m,\, n,\, \text{\bf tl } m \rangle}}
+				{}
+			\end{equation*}
+
+% Case-Left
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case-Left}]
+				{\,}
+				{\langle (\text{\bf case } {\bf inl}_{\tau_1 + \tau_2} v \text{ \bf of } e_2 \,|\, e_3) ,\, n,\, m\rangle \rightarrow \langle e_2\, v,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+% Case-Right
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case-Right}]
+				{\,}
+				{\langle (\text{\bf case } {\bf inr}_{\tau_1 + \tau_2} v \text{ \bf of } e_2 \,|\, e_3) ,\, n,\, m\rangle \rightarrow \langle e_3\, v,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+% Project-1
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Proj-1}]
+				{\,}
+				{\langle \text{\bf \#1 } (v_1, v_2) ,\, n,\, m\rangle \rightarrow \langle v_1,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+% Project-2
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Proj-2}]
+				{\,}
+				{\langle \text{\bf \#2 } (v_1, v_2) ,\, n,\, m\rangle \rightarrow \langle v_2,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+		\end{multicols}
+
+\subsection{Static Semantics}
+	\begin{multicols}{2}
+% Variable
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Var}]
+				{\Gamma(x) = \tau}
+				{\Gamma \vdash  x : \tau}}
+				{}
+			\end{equation*}
+% Unit
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Unit}]
+				{\,}
+				{\Gamma \vdash  () : {\bf unit}}}
+				{}
+			\end{equation*}
+% Function
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Fun}]
+				{\Gamma \vdash e : \tau'}
+				{\Gamma \vdash  (\lambda x : \tau.\, e) : \tau \to \tau'}}
+				{}
+			\end{equation*}
+% Let
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Let}]
+				{\Gamma \vdash e_1 : \tau \\ \Gamma_{x : \tau} \vdash e_2 : \tau'}
+				{\Gamma \vdash  \text{\bf let } x = e_1 \text{ \bf in } e_2 : \tau'}}
+				{}
+			\end{equation*}
+% Application
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc App}]
+				{\Gamma \vdash e_1 : \tau \to \tau' \\ \Gamma\vdash e_2 : \tau}
+				{\Gamma \vdash e_1\, e_2: \tau'}}
+				{}
+			\end{equation*}
+% Number
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Num}]
+				{\,}
+				{\Gamma \vdash  r : \mathbb{R}}}
+				{}
+			\end{equation*}
+% Binary Operation
+% Coin
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Coin}]
+				{\,}
+				{\Gamma \vdash  {\bf coin()} : \mathbb{R}}}
+				{}
+			\end{equation*}
+% Rand
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Rand}]
+				{\,}
+				{\Gamma \vdash  {\bf rand()} : \mathbb{R}}}
+				{}
+			\end{equation*}
+% Case
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case}]
+				{\Gamma \vdash e_1 : \tau_1 + \tau_2 \\ \Gamma \vdash e_2 : \tau_1 \to \tau \\ \Gamma \vdash e_3 : \tau_2 \to \tau }
+				{\Gamma \vdash \text{\bf case } e_1 \text{ \bf with } e_2 \,|\, e_3 : \tau}}
+				{}
+			\end{equation*}
+% In-left
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc In-Left}]
+				{\Gamma \vdash e : \tau_1 }
+				{\Gamma \vdash {\bf inl}_{\tau_1 + \tau_2} e : \tau_1 + \tau_2}}
+				{}
+			\end{equation*}
+% In-right
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc In-Right}]
+				{\Gamma \vdash e : \tau_2 }
+				{\Gamma \vdash {\bf inr}_{\tau_1 + \tau_2} e : \tau_1 + \tau_2}}
+				{}
+			\end{equation*}
+% Proj-1
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc In-Left}]
+				{\Gamma \vdash e : \tau_1 \times \tau_2 }
+				{\Gamma \vdash \text{\bf \# 1 } e : \tau_1}}
+				{}
+			\end{equation*}
+% Proj-2
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc In-Left}]
+				{\Gamma \vdash e : \tau_1 \times \tau_2 }
+				{\Gamma \vdash \text{\bf \# 2 } e : \tau_2}}
+				{}
+			\end{equation*}
+% Pair
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Pair}]
+				{\Gamma \vdash e_1 : \tau_1 \\ \Gamma \vdash e_2 : \tau_2 }
+				{\Gamma \vdash (e_1, e_2) : \tau_1 \times \tau_2}}
+				{}
+			\end{equation*}
+		\end{multicols}
+
+	\subsection{Example 1}
+			\begin{equation*}
+				\begin{split}
+					\langle (\lambda x.\, x + x )\, {\bf coin ()},\, 1::0::n,\, m\rangle
+					&\rightarrow \langle (\lambda x.\, x + x )\, 1,\, 0::n,\, m\rangle \\
+					&\rightarrow \langle 1 + 1,\, 0::n,\, m\rangle \\
+					&\rightarrow \langle 2,\, 0::n,\, m\rangle \\
+				\end{split}
+			\end{equation*}
+
+	\subsection{Example 2}
+			\begin{equation*}
+				\begin{split}
+					\langle \text{\bf let } x = {\bf coin ()} \text{ \bf in } x + x,\, 1::0::n,\, m\rangle
+					&\rightarrow \langle \text{\bf let } x = 1 \text{ \bf in } x + x,\, 0::n,\, m\rangle \\
+					&\rightarrow \langle 1 + 1,\, 0::n,\, m\rangle \\
+					&\rightarrow \langle 2,\, 0::n,\, m\rangle \\
+				\end{split}
+			\end{equation*}
+			
+\newpage
+% 2021-03-01
+	\section{CBN to CBV}
+	\begin{equation*}
+		\begin{split}
+			\mathcal{T}[\![x]\!] &\triangleq x (\lambda y.\, y) \\
+			\mathcal{T}[\![r]\!] &\triangleq r \\
+			\mathcal{T}[\![\lambda x.\, e]\!] &\triangleq \lambda x.\, \mathcal{T}[\![e]\!] \\
+			\mathcal{T}[\![\text{\bf let } x = e_1 \text{ \bf in } e_2]\!] &\triangleq \text{\bf let } x = (\lambda z.\, \mathcal{T}[\![ e_1]\!]) \text{ \bf in } \mathcal{T}[\![e_2]\!] \\
+			\mathcal{T}[\![e_1\, e_2]\!] &\triangleq \mathcal{T}[\![e_1]\!] (\lambda z.\, \mathcal{T}[\![ e_2]\!])\\
+			\mathcal{T}[\![{\bf coin}]\!] &\triangleq {\bf coin} \\
+			\mathcal{T}[\![{ e_1 + e_2 }]\!] &\triangleq \mathcal{T}[\![{ e_1 }]\!] + \mathcal{T}[\![{ e_2 }]\!] \\
+		\end{split}
+	\end{equation*}
+	
+	\section{CBV to CBN}
+	\begin{equation*}
+		\begin{split}
+			\mathcal{T}[\![x]\!] &\triangleq  \\
+			\mathcal{T}[\![r]\!] &\triangleq r \\
+			\mathcal{T}[\![\lambda x.\, e]\!] &\triangleq  \\
+			\mathcal{T}[\![\text{\bf let } x = e_1 \text{ \bf in } e_2]\!] &\triangleq \\
+			\mathcal{T}[\![e_1\, e_2]\!] &\triangleq \\
+			\mathcal{T}[\![{\bf coin}]\!] &\triangleq \\
+		\end{split}
+	\end{equation*}
+
+
+\end{document}

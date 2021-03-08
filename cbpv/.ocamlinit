@@ -1,0 +1,9 @@
+#directory "_build";;
+#load "ast.cmo";;
+#load "eval.cmo";;
+#load "types.cmo";;
+#load "parser.cmo";;
+#load "lexer.cmo";;
+#load "main.cmo";;
+open Eval;;
+open Main;;

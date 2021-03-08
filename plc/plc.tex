@@ -1,0 +1,504 @@
+\documentclass{article}
+
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathpartir}
+\usepackage{multicol}
+
+\newtheorem*{theorem}{Theorem}
+\newtheorem*{prop}{Proposition}
+\newtheorem*{definition}{Definition}
+\newtheorem*{lemma}{Lemma}
+\newtheorem*{example}{Example}
+\newtheorem*{remark}{Remark}
+\newtheorem*{claim}{Claim}
+
+\renewcommand\qedsymbol{\bf QED}
+
+\geometry{letterpaper, total={7.5in, 10in}, left=.5in, top=.5in}
+
+\setcounter{secnumdepth}{0}
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\hrule
+	\smallskip
+	\hrule\hrule\hrule
+	\medskip
+	\noindent
+	{\huge \bf Probabilistic Lambda Calculi}
+	\medskip
+	\newline
+	{\huge \it Research Project}
+
+	\hrule
+	\medskip
+	\noindent
+	{\Large \bf Eric Jackson}
+	\medskip
+	\hrule\hrule\hrule
+	\smallskip
+	\hrule
+	\medskip
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		We define two languages, $\lambda_{\bf IID}$ and $\lambda_{\bf PC}$, for modeling probabilistic behavior. The languages share the same syntax and the same static semantics, but differ in their treatment of the random expressions {\bf coin} and {\bf rand}.
+		
+	\section{Syntax}
+		\begin{multicols}{2}
+		\subsection{Expressions}
+			\begin{equation*}
+				\begin{split}
+					e ::=
+					&\, x \\
+					&| () \\
+					&| \lambda x : \tau.\, e \\
+					&| \text{\bf let } x = e_1 \text{ \bf in } e_2 \\
+					&| e_1\, e_2 \\
+					&| r \\
+					&| e_1 \oplus e_2 \\
+					&| {\bf coin} \\
+					&| {\bf rand} \\
+					&| (\text{\bf case } e_1 \text{ \bf of } e_2 \,|\, e_3) \\
+					&| {\bf inl}_{\tau_1 + \tau_2} e \\
+					&| {\bf inr}_{\tau_1 + \tau_2} e \\
+					&| \text{\bf \#1 } e \\
+					&| \text{\bf \#2 } e \\
+					&| (e_1, e_2) \\
+				\end{split}
+			\end{equation*}
+			The languages include a variety of features familiar from standard extensions of the lambda calculus.
+			There are two probabilistic constructs: {\bf coin}, which evaluates randomly to $0$ or $1$, and {\bf rand}, which evaluates randomly to a real number in $[0, 1]$.
+			Finally, note that $\oplus$ is a placeholder which represents the binary operations: $+$, $-$, $\times$, and $/$.
+			
+		\subsection{Types}
+			\begin{equation*}
+				\begin{split}
+					\tau ::=
+					&\, {\bf unit} \\
+					&| \mathbb{R} \\
+					&| \tau_1 \to \tau_2 \\
+					&| \tau_1 + \tau_2 \\
+					&| \tau_1 \times \tau_2 \\
+				\end{split}
+			\end{equation*}
+			The languages includes two base types, {\bf unit} and $\mathbb{R}$---the type of real numbers. 
+			Additionally, there are types for functions, sums, and products.
+			\end{multicols}
+		
+	\begin{multicols}{2}
+	[
+	\section{Static Semantics}
+	In addition to sharing the same syntax, the languages we define also share the same static semantics. Their typing rules are listed below.
+	]
+% Variable
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Var}]
+				{\Gamma(x) = \tau}
+				{\Gamma \vdash  x : \tau}}
+				{}
+			\end{equation*}
+% Unit
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Unit}]
+				{\,}
+				{\Gamma \vdash  () : {\bf unit}}}
+				{}
+			\end{equation*}
+% Function
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Fun}]
+				{\Gamma \vdash e : \tau'}
+				{\Gamma \vdash  (\lambda x : \tau.\, e) : \tau \to \tau'}}
+				{}
+			\end{equation*}
+% Let
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Let}]
+				{\Gamma \vdash e_1 : \tau \\ \Gamma_{x : \tau} \vdash e_2 : \tau'}
+				{\Gamma \vdash  \text{\bf let } x = e_1 \text{ \bf in } e_2 : \tau'}}
+				{}
+			\end{equation*}
+% Application
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc App}]
+				{\Gamma \vdash e_1 : \tau \to \tau' \\ \Gamma\vdash e_2 : \tau}
+				{\Gamma \vdash e_1\, e_2: \tau'}}
+				{}
+			\end{equation*}
+% Number
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Num}]
+				{\,}
+				{\Gamma \vdash  r : \mathbb{R}}}
+				{}
+			\end{equation*}
+% Binary Operation
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Bop}]
+				{\Gamma \vdash e_1 : \mathbb{R} \\ \Gamma \vdash e_2 : \mathbb{R}}
+				{\Gamma \vdash  e_1 \oplus e_2 : \mathbb{R}}}
+				{}
+			\end{equation*}
+% Coin
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Coin}]
+				{\,}
+				{\Gamma \vdash  {\bf coin} : \mathbb{R}}}
+				{}
+			\end{equation*}
+% Rand
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Rand}]
+				{\,}
+				{\Gamma \vdash  {\bf rand} : \mathbb{R}}}
+				{}
+			\end{equation*}
+% Case
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case}]
+				{\Gamma \vdash e_1 : \tau_1 + \tau_2 \\ \Gamma \vdash e_2 : \tau_1 \to \tau \\ \Gamma \vdash e_3 : \tau_2 \to \tau }
+				{\Gamma \vdash \text{\bf case } e_1 \text{ \bf with } e_2 \,|\, e_3 : \tau}}
+				{}
+			\end{equation*}
+% In-left
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc In-Left}]
+				{\Gamma \vdash e : \tau_1 }
+				{\Gamma \vdash {\bf inl}_{\tau_1 + \tau_2} e : \tau_1 + \tau_2}}
+				{}
+			\end{equation*}
+% In-right
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc In-Right}]
+				{\Gamma \vdash e : \tau_2 }
+				{\Gamma \vdash {\bf inr}_{\tau_1 + \tau_2} e : \tau_1 + \tau_2}}
+				{}
+			\end{equation*}
+% Proj-1
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Proj-1}]
+				{\Gamma \vdash e : \tau_1 \times \tau_2 }
+				{\Gamma \vdash \text{\bf \# 1 } e : \tau_1}}
+				{}
+			\end{equation*}
+% Proj-2
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Proj-2}]
+				{\Gamma \vdash e : \tau_1 \times \tau_2 }
+				{\Gamma \vdash \text{\bf \# 2 } e : \tau_2}}
+				{}
+			\end{equation*}
+% Pair
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Pair}]
+				{\Gamma \vdash e_1 : \tau_1 \\ \Gamma \vdash e_2 : \tau_2 }
+				{\Gamma \vdash (e_1, e_2) : \tau_1 \times \tau_2}}
+				{}
+			\end{equation*}
+	\end{multicols}
+
+	\newpage
+	\section{Independently and Identically Distributed ($\lambda_{\bf IID}$)}
+		\subsection{Values}
+			\begin{equation*}
+				\begin{split}
+					v ::=
+					&\, \lambda x:\tau.\, e \\
+					&| () \\
+					&| r \\
+					&| \text{\bf inl}_{\tau_1 + \tau_2} v \\
+					&| \text{\bf inr}_{\tau_1 + \tau_2} v \\
+					&| (e, e) \\
+				\end{split}
+			\end{equation*}
+			There are six types of values, which are almost all familiar from traditional lambda calculus extensions.
+			Note, however, that in $\lambda_{\bf IID}$ pairs of non-value expressions are values.
+			The desirability of this construction can be demonstrated by the expression
+			$$\text{\bf let } x = ({\bf coin}, {\bf coin}) \text{ \bf in } (\text {\bf \#1 } x) + (\text{\bf \#1 } x)$$
+
+
+		\subsection{Semantics}
+		The small-step semantics can be modeled as a relation on ${\bf State} \times {\bf State}$ where ${\bf State} \triangleq e \times \{0,1\}^\omega \times [0, 1]^\omega$. This construction allows us to model the behavior of {\bf coin()} and {\bf rand()} in terms of the random sequences in $\{0,1\}^\omega$ and $[0,1]^\omega$, respectively.
+		
+		We will use a context to facilitate the presentation of the semantics.
+		\begin{equation*}
+			\begin{split}
+				E ::=
+				&\, [\cdot] \\
+				&| E\, e \\
+				&| E \oplus e \\
+				&| v \oplus E \\
+				&| (\text{\bf case } E \text{ \bf of } e_2 \,|\, e_3) \\
+				&| {\bf inl}_{\tau_1 + \tau_2} E \\
+				&| {\bf inr}_{\tau_1 + \tau_2} E \\
+				&| \text{\bf \# 1 } E \\
+				&| \text{\bf \# 2 } E \\
+			\end{split}
+		\end{equation*}
+		
+		Finally, the small-step semantics are given by the following inference rules.
+		
+		
+		\begin{multicols}{2}
+% Context 
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Context}]
+				{\langle e,\, n,\, m \rangle \rightarrow \langle e',\, n',\, m' \rangle }
+				{\langle E(e),\, n,\, m\rangle \rightarrow \langle E(e'),\, n',\, m' \rangle}}
+				{}
+			\end{equation*}
+		
+% Beta-Reduction
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc $\beta$-Reduction}]
+				{\,}
+				{\langle(\lambda x : \tau.\, e)\, e_2,\, n,\, m\rangle \rightarrow \langle e\{e_2/x\},\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Let
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Let}]
+				{\,}
+				{\langle\text{\bf let } x = e_1 \text{ \bf in } e_2,\, n,\, m\rangle \rightarrow \langle e_2\{e_1/x\},\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Binary Operations
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Bop}]
+				{r_1 \bar{\oplus} r_2 = r }
+				{\langle r_1 \oplus r_2,\, n,\, m\rangle \rightarrow \langle r,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+		
+% Coin
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Coin}]
+				{\,}
+				{\langle {\bf coin},\, n,\, m\rangle \rightarrow \langle \text{\bf hd } n,\, \text{\bf tl } n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Rand
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Rand}]
+				{\,}
+				{\langle {\bf rand},\, n,\, m\rangle \rightarrow \langle \text{\bf hd } m,\, n,\, \text{\bf tl } m \rangle}}
+				{}
+			\end{equation*}
+
+% Case-Left
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case-Left}]
+				{\,}
+				{\langle (\text{\bf case } {\bf inl}_{\tau_1 + \tau_2} e \text{ \bf of } e_2 \,|\, e_3) ,\, n,\, m\rangle \rightarrow \langle e_2\, e,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+% Case-Right
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case-Right}]
+				{\,}
+				{\langle (\text{\bf case } {\bf inr}_{\tau_1 + \tau_2} e \text{ \bf of } e_2 \,|\, e_3) ,\, n,\, m\rangle \rightarrow \langle e_3\, e,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+% Project-1
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Proj-1}]
+				{\,}
+				{\langle \text{\bf \#1 } (e_1, e_2) ,\, n,\, m\rangle \rightarrow \langle e_1,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+% Project-2
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Proj-2}]
+				{\,}
+				{\langle \text{\bf \#2 } (e_1, e_2) ,\, n,\, m\rangle \rightarrow \langle e_2,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+		\end{multicols}
+
+
+	\subsection{Example}
+			\begin{equation*}
+				\begin{split}
+					\langle (\lambda x.\, x + x )\, {\bf coin},\, 1::0::n,\, m\rangle
+					&\rightarrow \langle {\bf coin} + {\bf coin},\, 1::0::n,\, m\rangle \\
+					&\rightarrow \langle 1 + {\bf coin},\, 0::n,\, m\rangle \\
+					&\rightarrow \langle 1 + 0,\, n,\, m\rangle \\
+					&\rightarrow \langle 1,\, n,\, m\rangle \\
+				\end{split}
+			\end{equation*}
+			
+	\newpage
+	\section{Perfectly Correlated ($\lambda_{\bf PC}$)}
+		\subsection{Values}
+			\begin{equation*}
+				\begin{split}
+					v ::=
+					&\, \lambda x:\tau.\, e \\
+					&| () \\
+					&| r \\
+					&| \text{\bf inl}_{\tau_1 + \tau_2} v \\
+					&| \text{\bf inr}_{\tau_1 + \tau_2} v \\
+					&| (v, v) \\
+				\end{split}
+			\end{equation*}
+			Again, there are six types of values. 
+			Note, however, that unlike $\lambda_{\bf IID}$ a pair is only a value if it is a pair of values.
+		
+		\subsection{Semantics}
+
+		As with $\lambda_{\bf IID}$, the small-step semantics of $\lambda_{\bf PC}$ can be modeled as a relation on $\bf State \times State$.
+		
+		We will again use a context to facilitate presentation, but one should notice several differences between the contexts of the two languages. 
+		For example, the $\lambda_{\bf PC}$ context includes pairs.
+		
+		\begin{equation*}
+			\begin{split}
+				E ::=
+				&\, [\cdot] \\
+				&| E\, e \\
+				&| v\, E \\
+				&| \text{\bf let } x = E \text{ \bf in } e_2 \\
+				&| E \oplus e \\
+				&| v \oplus E \\
+				&| (\text{\bf case } E \text{ \bf of } e_2 \,|\, e_3) \\
+				&| {\bf inl}_{\tau_1 + \tau_2} E \\
+				&| {\bf inr}_{\tau_1 + \tau_2} E \\
+				&| \text{\bf \# 1 } E \\
+				&| \text{\bf \# 2 } E \\
+				&| (E, e) \\
+				&| (v, E) \\
+			\end{split}
+		\end{equation*}
+		
+		The small-step semantics are given by the following inference rules.
+		
+		\begin{multicols}{2}
+% Context 
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Context}]
+				{\langle e,\, n,\, m \rangle \rightarrow \langle e',\, n',\, m' \rangle }
+				{\langle E(e),\, n,\, m\rangle \rightarrow \langle E(e'),\, n',\, m' \rangle}}
+				{}
+			\end{equation*}
+		
+% Beta-Reduction
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc $\beta$-Reduction}]
+				{\,}
+				{\langle(\lambda x : \tau.\, e)\, v,\, n,\, m\rangle \rightarrow \langle e\{v/x\},\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Let
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Let}]
+				{\,}
+				{\langle\text{\bf let } x = v \text{ \bf in } e_2,\, n,\, m\rangle \rightarrow \langle e_2\{v/x\},\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Binary Operations
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Bop}]
+				{r_1 \bar{\oplus} r_2 = r }
+				{\langle r_1 \oplus r_2,\, n,\, m\rangle \rightarrow \langle r,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+		
+% Coin
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Coin}]
+				{\,}
+				{\langle {\bf coin},\, n,\, m\rangle \rightarrow \langle \text{\bf hd } n,\, \text{\bf tl } n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Rand
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Rand}]
+				{\,}
+				{\langle {\bf rand},\, n,\, m\rangle \rightarrow \langle \text{\bf hd } m,\, n,\, \text{\bf tl } m \rangle}}
+				{}
+			\end{equation*}
+
+% Case-Left
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case-Left}]
+				{\,}
+				{\langle (\text{\bf case } {\bf inl}_{\tau_1 + \tau_2} v \text{ \bf of } e_2 \,|\, e_3) ,\, n,\, m\rangle \rightarrow \langle e_2\, v,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+% Case-Right
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case-Right}]
+				{\,}
+				{\langle (\text{\bf case } {\bf inr}_{\tau_1 + \tau_2} v \text{ \bf of } e_2 \,|\, e_3) ,\, n,\, m\rangle \rightarrow \langle e_3\, v,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+% Project-1
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Proj-1}]
+				{\,}
+				{\langle \text{\bf \#1 } (v_1, v_2) ,\, n,\, m\rangle \rightarrow \langle v_1,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+% Project-2
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Proj-2}]
+				{\,}
+				{\langle \text{\bf \#2 } (v_1, v_2) ,\, n,\, m\rangle \rightarrow \langle v_2,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+		\end{multicols}
+
+	\subsection{Example}
+			\begin{equation*}
+				\begin{split}
+					\langle \text{\bf let } x = {\bf coin} \text{ \bf in } x + x,\, 1::0::n,\, m\rangle
+					&\rightarrow \langle \text{\bf let } x = 1 \text{ \bf in } x + x,\, 0::n,\, m\rangle \\
+					&\rightarrow \langle 1 + 1,\, 0::n,\, m\rangle \\
+					&\rightarrow \langle 2,\, 0::n,\, m\rangle \\
+				\end{split}
+			\end{equation*}
+
+\end{document}
