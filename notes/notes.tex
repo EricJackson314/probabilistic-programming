@@ -993,11 +993,62 @@
 				\inferrule*[right={\sc To-pc}]
 				{\,}
 				{\langle v_1 \text{ \bf to } x \text{ \bf in } e_2, n, m \rangle \to 
-				\langle e_2 \{v/ x\}, n, m \rangle}}
+				\langle e_2 \{v_1 / x\}, n, m \rangle}}
 				{}
 			\end{equation*}
 		\end{multicols}
 		
+	\subsection{Big Step}
+% Beta-Reduction
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc $\beta$-Reduction}]
+				{\langle e_1, n, m \rangle \Downarrow \langle \lambda x.\, e_1', n', m'\rangle \\
+				\langle e_2, n', m' \rangle \Downarrow \langle v, n'', m''\rangle \\
+				\langle e_1'\{v/x\}, n'',m''\rangle \Downarrow \langle v', n''', m''' \rangle}
+				{\langle e_1\, e_2,\, n,\, m\rangle \Downarrow \langle v',\, n''',\, m''' \rangle}}
+				{}
+			\end{equation*}
+
+% Let
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Let}]
+				{\langle e_1, n, m\rangle \Downarrow \langle v, n', m'\rangle \\
+				\langle e_2\{v/x\}, n', m' \rangle \Downarrow \langle v', n'', m''\rangle }
+				{\langle\text{\bf let } x = e_1 \text{ \bf in } e_2,\, n,\, m\rangle \Downarrow \langle v',\, n'',\, m'' \rangle}}
+				{}
+			\end{equation*}
+
+% Binary Operations
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Bop}]
+				{\langle e_1, n, m \rangle \Downarrow \langle r_1, n', m' \rangle \\
+				\langle e_2, n', m' \rangle \Downarrow \langle r_2, n'', m'' \rangle \\
+				 r_1 \bar{\oplus} r_2 = r }
+				{\langle e_1 \oplus e_2,\, n,\, m\rangle \Downarrow \langle r,\, n'',\, m'' \rangle}}
+				{}
+			\end{equation*}
+% Coin
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Coin}]
+				{\,}
+				{\langle {\bf coin},\, n,\, m\rangle \Downarrow \langle \text{\bf hd } n,\, \text{\bf tl } n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Rand
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Rand}]
+				{\,}
+				{\langle {\bf rand},\, n,\, m\rangle \Downarrow \langle \text{\bf hd } m,\, n,\, \text{\bf tl } m \rangle}}
+				{}
+			\end{equation*}
+
+
 	\subsection{Denotational}
 		\begin{equation*}
 		\begin{split}
@@ -1105,7 +1156,7 @@
 				\inferrule*[right={\sc To-iid}]
 				{\,}
 				{\langle e_1 \text{ \bf to } x \text{ \bf in } e_2, n, m \rangle \to 
-				\langle e_2 \{ (\lambda y.\, e_1) \, (\lambda z.\, z) / x \}, n, m \rangle}}
+				\langle e_2 \{ (\lambda y.\, e_1) \, () / x \}, n, m \rangle}}
 				{}
 			\end{equation*}
 		\end{multicols}
