@@ -1,0 +1,273 @@
+\documentclass{article}
+
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathpartir}
+\usepackage{multicol}
+
+\newtheorem*{theorem}{Theorem}
+\newtheorem*{prop}{Proposition}
+\newtheorem*{definition}{Definition}
+\newtheorem*{lemma}{Lemma}
+\newtheorem*{example}{Example}
+\newtheorem*{remark}{Remark}
+\newtheorem*{claim}{Claim}
+
+\renewcommand\qedsymbol{\bf QED}
+
+\geometry{letterpaper, total={7.5in, 10in}, left=.5in, top=.5in}
+
+\setcounter{secnumdepth}{0}
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\hrule
+	\smallskip
+	\hrule\hrule\hrule
+	\medskip
+	\noindent
+	{\huge \bf Independently and Identically Distributed}
+	\medskip
+	\newline
+	{\huge \it $\lambda_{IIC}$}
+	\smallskip
+	\hrule
+	\medskip
+	\noindent
+	{\Large \bf Eric Jackson}
+	\medskip
+	\hrule\hrule\hrule
+	\smallskip
+	\hrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Syntax %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Syntax}
+
+TODO
+
+% Static Semantics %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Static Semantics}
+
+TODO
+
+% Dynamic Semantics %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Dynamic Semantic}
+
+% Small Step %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\subsection{Small-Step Semantics}
+		\begin{multicols}{2}
+% Context 
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Context}]
+				{\langle e,\, n,\, m \rangle \rightarrow \langle e',\, n',\, m' \rangle }
+				{\langle E(e),\, n,\, m\rangle \rightarrow \langle E(e'),\, n',\, m' \rangle}}
+				{}
+			\end{equation*}
+		
+% Beta-Reduction
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc $\beta$-Reduction}]
+				{\,}
+				{\langle(\lambda x : \tau.\, e)\, e_2,\, n,\, m\rangle \rightarrow \langle e\{e_2/x\},\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Let
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Let}]
+				{\,}
+				{\langle\text{\bf let } x = e_1 \text{ \bf in } e_2,\, n,\, m\rangle \rightarrow \langle e_2\{e_1/x\},\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Binary Operations
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Bop}]
+				{r_1 \bar{\oplus} r_2 = r }
+				{\langle r_1 \oplus r_2,\, n,\, m\rangle \rightarrow \langle r,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+		
+% Coin
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Coin}]
+				{\,}
+				{\langle {\bf coin},\, n,\, m\rangle \rightarrow \langle \text{\bf hd } n,\, \text{\bf tl } n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Rand
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Rand}]
+				{\,}
+				{\langle {\bf rand},\, n,\, m\rangle \rightarrow \langle \text{\bf hd } m,\, n,\, \text{\bf tl } m \rangle}}
+				{}
+			\end{equation*}
+
+% Case-Left
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case-Left}]
+				{\,}
+				{\langle (\text{\bf case } {\bf inl}_{\tau_1 + \tau_2} e \text{ \bf of } e_2 \,|\, e_3) ,\, n,\, m\rangle \rightarrow \langle e_2\, e,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+			
+% Case-Right
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case-Right}]
+				{\,}
+				{\langle (\text{\bf case } {\bf inr}_{\tau_1 + \tau_2} e \text{ \bf of } e_2 \,|\, e_3) ,\, n,\, m\rangle \rightarrow \langle e_3\, e,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+			
+% Project-1
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Proj-1}]
+				{\,}
+				{\langle \text{\bf \#1 } (e_1, e_2) ,\, n,\, m\rangle \rightarrow \langle e_1,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+			
+% Project-2
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Proj-2}]
+				{\,}
+				{\langle \text{\bf \#2 } (e_1, e_2) ,\, n,\, m\rangle \rightarrow \langle e_2,\, n,\, m \rangle}}
+				{}
+			\end{equation*}
+			
+% To
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc To-pc}]
+				{\,}
+				{\langle v_1 \text{ \bf to } x \text{ \bf in } e_2, n, m \rangle \to 
+				\langle e_2 \{v_1 / x\}, n, m \rangle}}
+				{}
+			\end{equation*}
+		\end{multicols}
+			
+% Big Step %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\subsection{Big-Step Semantics}
+% Beta-Reduction
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc $\beta$-Reduction}]
+				{\langle e_1, n, m \rangle \Downarrow \langle \lambda x.\, e_1', n', m'\rangle \\
+				\langle e_1'\{e_2/x\}, n',m'\rangle \Downarrow \langle v, n'', m'' \rangle}
+				{\langle e_1\, e_2,\, n,\, m\rangle \Downarrow \langle v,\, n'',\, m'' \rangle}}
+				{}
+			\end{equation*}
+
+% Let
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Let}]
+				{\langle e_2\{e_1/x\}, n, m \rangle \Downarrow \langle v, n', m'\rangle}
+				{\langle\text{\bf let } x = e_1 \text{ \bf in } e_2,\, n,\, m\rangle \Downarrow \langle v,\, n',\, m' \rangle}}
+				{}
+			\end{equation*}
+
+% Binary Operations
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Bop}]
+				{\langle e_1, n, m \rangle \Downarrow \langle r_1, n', m' \rangle \\
+				\langle e_2, n', m' \rangle \Downarrow \langle r_2, n'', m'' \rangle \\
+				 r_1 \bar{\oplus} r_2 = r }
+				{\langle e_1 \oplus e_2,\, n,\, m\rangle \Downarrow \langle r,\, n'',\, m'' \rangle}}
+				{}
+			\end{equation*}
+% Coin
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Coin}]
+				{\,}
+				{\langle {\bf coin},\, n,\, m\rangle \Downarrow \langle \text{\bf hd } n,\, \text{\bf tl } n,\, m \rangle}}
+				{}
+			\end{equation*}
+
+% Rand
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Rand}]
+				{\,}
+				{\langle {\bf rand},\, n,\, m\rangle \Downarrow \langle \text{\bf hd } m,\, n,\, \text{\bf tl } m \rangle}}
+				{}
+			\end{equation*}
+			
+% Case-Left
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case-Left}]
+				{\langle e_2\, e_1, n, m \rangle \Downarrow \langle v, n', m' \rangle}
+				{\langle (\text{\bf case } {\bf inl}_{\tau_1 + \tau_2} e_1 \text{ \bf of } e_2 \,|\, e_3) ,\, n,\, m\rangle \Downarrow \langle v,\, n',\, m' \rangle}}
+				{}
+			\end{equation*}
+
+% Case-Right
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Case-Left}]
+				{\langle e_3\, e_1, n, m \rangle \Downarrow \langle v, n', m' \rangle}
+				{\langle (\text{\bf case } {\bf inr}_{\tau_1 + \tau_2} e_1 \text{ \bf of } e_2 \,|\, e_3) ,\, n,\, m\rangle \Downarrow \langle v,\, n',\, m' \rangle}}
+				{}
+			\end{equation*}
+
+% Project-1
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Proj-1}]
+				{\langle e_1, n, m \rangle \Downarrow \langle v, n', m' \rangle}
+				{\langle \text{\bf \#1 } (e_1, e_2) ,\, n,\, m\rangle \Downarrow \langle v, n', m' \rangle}}
+				{}
+			\end{equation*}
+			
+% Project-2
+				\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc Proj-2}]
+				{\langle e_2, n, m \rangle \Downarrow \langle v, n', m' \rangle}
+				{\langle \text{\bf \#2 } (e_1, e_2) ,\, n,\, m\rangle \Downarrow \langle v, n', m' \rangle}}
+				{}
+			\end{equation*}
+			
+% To
+			\begin{equation*}
+				\inferrule{
+				\inferrule*[right={\sc To-pc}]
+				{\langle e_1, n, m \rangle \Downarrow \langle v, n' m' \rangle \\
+				\langle e\{v / x\}, n', m' \rangle \Downarrow \langle v', n'', m'' \rangle}
+				{\langle e_1 \text{ \bf to } x \text{ \bf in } e_2, n, m \rangle  
+				\Downarrow \langle v', n'', m'' \rangle}}
+				{}
+			\end{equation*}
+
+
+% Denotational %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\subsection{Denotational Semantics}
+		\begin{equation*}
+		\begin{split}
+			[\![r]\!] &\triangleq \delta_r \\
+			[\![\lambda x : \tau .\, e]\!] &\triangleq x \mapsto [\![e]\!] \\
+			[\![\text{\bf let } x = e_1 \text{ \bf in } e_2]\!] &\triangleq [\![e_2\{e_1 / x\}]\!] \\
+			[\![e_1 \text{ } e_2]\!] &\triangleq [\![e_1]\!] \circ [\![e_2]\!] \\
+			[\![{\bf coin}]\!] &\triangleq \frac{1}{2}(\delta_0 + \delta_1) \\
+			[\![{\bf rand}]\!] &\triangleq \lambda \\
+		\end{split}
+	\end{equation*}
+
+\end{document}
