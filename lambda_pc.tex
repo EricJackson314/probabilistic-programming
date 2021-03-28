@@ -246,9 +246,10 @@ TODO
 			\begin{equation*}
 				\inferrule{
 				\inferrule*[right={\sc To-iid}]
-				{\langle e_2\{ (\lambda y. e_1) ()/ x\}, n, m \rangle \Downarrow \langle v, n' m' \rangle}
-				{\langle e_1 \text{ \bf to } x \text{ \bf in } e_2, n, m \rangle  
-				\Downarrow \langle v, n', m' \rangle}}
+				{\langle e_1, n, m\rangle \Downarrow \langle v, n', m'' \rangle \\
+				\langle e_2\{v / x\}, n', m' \rangle \Downarrow \langle v', n'', m'' \rangle}
+				{\langle e_1 \text{ \bf to } x \text{ \bf in } e_2, n, m \rangle
+				\Downarrow \langle v, n'', m'' \rangle}}
 				{}
 			\end{equation*}
 
@@ -261,6 +262,32 @@ TODO
 			[\![\lambda x.\, e]\!] &\triangleq  \\
 			[\![{\bf coin}]\!] &\triangleq \\
 			[\![e_1 \text{ } e_2]\!] &\triangleq \\
+		\end{split}
+	\end{equation*}
+
+% Translation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Translation to CBPV}
+	\begin{equation*}
+		\begin{split}
+			\mathcal{T} [\![x]\!] &\triangleq 
+			\text{\bf produce } x \\
+			\mathcal{T} [\![\lambda x.\, e]\!] &\triangleq 
+			\text{\bf produce thunk } \lambda x.\, \mathcal[\![ e ]\!] \\
+			\mathcal{T} [\![\text{\bf let} x = e_1 \text{ \bf in } e_2]\!] &\triangleq 
+			\mathcal{T}[\![e_1]\!] \text{ \bf to } x.\, \mathcal{T}[\![e_2]\!]\\
+			\mathcal{T} [\![e_1\, e_2]\!] &\triangleq 
+			\mathcal{T}[\![e_2]\!] \text{ \bf to } x.\, \mathcal{T}[\![e_1]\!] \text{ \bf to } f.\, x` (\text{\bf force } f)\\
+			\mathcal{T} [\![\text{\bf coin}]\!] &\triangleq \\
+			\mathcal{T} [\![\text{\bf rand}]\!] &\triangleq \\
+			\mathcal{T} [\![\text{\bf inl}_{\tau_1 + \tau_2} e]\!] &\triangleq
+			\mathcal{T}[\![e]\!] \text{ \bf to } z.\, \text{\bf produce inl } z \\
+			\mathcal{T} [\![\text{\bf inr}_{\tau_1 + \tau_2} e]\!] &\triangleq
+			\mathcal{T}[\![e]\!] \text{ \bf to } z.\, \text{\bf produce inr } z \\
+			\mathcal{T} [\![\text{\bf case } e_1 \text{\bf of } e_2 | e_3]\!] &\triangleq \\
+			\mathcal{T} [\![(e_1, e_2)]\!] &\triangleq \\
+			\mathcal{T} [\![\text{\bf \#1 } e]\!] &\triangleq \\
+			\mathcal{T} [\![\text{\bf \#2 } e]\!] &\triangleq \\
+			\mathcal{T} [\![e_1 \text{ \bf to } x \text{ \bf in } e2]\!] &\triangleq \\
 		\end{split}
 	\end{equation*}
 
