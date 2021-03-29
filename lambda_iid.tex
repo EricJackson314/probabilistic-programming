@@ -281,13 +281,18 @@ TODO
 			\text{\bf let } x \text{ \bf be } \mathcal{T}[\![e_1]\!].\, \mathcal{T}[\![e_2]\!]\\
 			\mathcal{T} [\![e_1\, e_2]\!] &\triangleq 
 			(\text{\bf thunk} \mathcal{T}[\![e_2]\!])`\, \mathcal{T}[\![e_1]\!]\\
-			\mathcal{T} [\![\text{\bf coin}]\!] &\triangleq \\
-			\mathcal{T} [\![\text{\bf rand}]\!] &\triangleq \\
+			\mathcal{T} [\![\text{\bf coin}]\!] &\triangleq
+			\text{\bf coin} \\
+			\mathcal{T} [\![\text{\bf rand}]\!] &\triangleq
+			\text{\bf rand} \\
 			\mathcal{T} [\![\text{\bf inl}_{\tau_1 + \tau_2} e]\!] &\triangleq
 			\text{\bf produce inl thunk } \mathcal{T}[\![e]\!] \\
 			\mathcal{T} [\![\text{\bf inr}_{\tau_1 + \tau_2} e]\!] &\triangleq
 			\text{\bf produce inr thunk } \mathcal{T}[\![e]\!] \\
-			\mathcal{T} [\![\text{\bf case } e_1 \text{\bf of } e_2 | e_3]\!] &\triangleq \\
+			\mathcal{T} [\![\text{\bf case } e_1 \text{\bf of } e_2 | e_3]\!] &\triangleq	
+			\mathcal{T}[\![ e_1]\!] \text{ \bf to } z. \text{ \bf pm } z \text{ \bf as } 
+			\{\text{\bf inl } x. \mathcal{T}[\![ e_2]\!], 
+			\text{ \bf inr } x. \mathcal{T}[\![ e_3]\!]\} \\
 			\mathcal{T} [\![(e_1, e_2)]\!] &\triangleq \\
 			\mathcal{T} [\![\text{\bf \#1 } e]\!] &\triangleq \\
 			\mathcal{T} [\![\text{\bf \#2 } e]\!] &\triangleq \\

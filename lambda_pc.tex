@@ -277,13 +277,17 @@ TODO
 			\mathcal{T}[\![e_1]\!] \text{ \bf to } x.\, \mathcal{T}[\![e_2]\!]\\
 			\mathcal{T} [\![e_1\, e_2]\!] &\triangleq 
 			\mathcal{T}[\![e_2]\!] \text{ \bf to } x.\, \mathcal{T}[\![e_1]\!] \text{ \bf to } f.\, x` (\text{\bf force } f)\\
-			\mathcal{T} [\![\text{\bf coin}]\!] &\triangleq \\
-			\mathcal{T} [\![\text{\bf rand}]\!] &\triangleq \\
+			\mathcal{T} [\![\text{\bf coin}]\!] &\triangleq 
+			\text{\bf produce coin} \\
+			\mathcal{T} [\![\text{\bf rand}]\!] &\triangleq
+			\text{\bf produce rand} \\
 			\mathcal{T} [\![\text{\bf inl}_{\tau_1 + \tau_2} e]\!] &\triangleq
 			\mathcal{T}[\![e]\!] \text{ \bf to } z.\, \text{\bf produce inl } z \\
 			\mathcal{T} [\![\text{\bf inr}_{\tau_1 + \tau_2} e]\!] &\triangleq
 			\mathcal{T}[\![e]\!] \text{ \bf to } z.\, \text{\bf produce inr } z \\
-			\mathcal{T} [\![\text{\bf case } e_1 \text{\bf of } e_2 | e_3]\!] &\triangleq \\
+			\mathcal{T} [\![\text{\bf case } e_1 \text{\bf of } e_2 | e_3]\!] &\triangleq
+			\mathcal{T}[\![ e_1]\!] \text{ \bf to } z. \text{ \bf pm } z \text{ \bf as } 
+			\{ \text{\bf inl } x. \mathcal{T}[\![ e_2]\!], \text{ \bf inr } x. \mathcal{T}[\![ e_3]\!]\} \\
 			\mathcal{T} [\![(e_1, e_2)]\!] &\triangleq \\
 			\mathcal{T} [\![\text{\bf \#1 } e]\!] &\triangleq \\
 			\mathcal{T} [\![\text{\bf \#2 } e]\!] &\triangleq \\
