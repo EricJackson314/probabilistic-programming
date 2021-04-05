@@ -1,0 +1,169 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amscd}
+\usepackage{bbold}
+\usepackage{ amssymb }
+\usepackage{mathtools}
+\usepackage{mathpartir}
+\usepackage[latin2]{inputenc}
+\usepackage{t1enc}
+\usepackage[mathscr]{eucal}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{pict2e}
+\usepackage{epic}
+\usepackage{syntax}
+\usepackage{enumitem}
+\usepackage[colorlinks]{hyperref}
+\numberwithin{equation}{section}
+\usepackage[margin=2.9cm]{geometry}
+\usepackage{epstopdf}
+
+\usepackage{tikz-cd}
+
+\usepackage{ stmaryrd }
+
+\newcommand{\cat}{%
+\mathbf%
+}
+
+\newcommand{\sem}[1]{
+  \llbracket #1 \rrbracket
+}
+
+
+\def\numset#1{{\\mathbb #1}}
+
+
+   
+ 
+
+\theoremstyle{plain}
+\newtheorem{Th}{Theorem}[section]
+\newtheorem{Lemma}[Th]{Lemma}
+\newtheorem{Cor}[Th]{Corollary}
+\newtheorem{Prop}[Th]{Proposition}
+\newtheorem{Q}[Th]{Question}
+
+\theoremstyle{definition}
+\newtheorem{Def}[Th]{Definition}
+\newtheorem{Conj}[Th]{Conjecture}
+\newtheorem{Rem}[Th]{Remark}
+\newtheorem{?}[Th]{Problem}
+\newtheorem{Ex}[Th]{Example}
+
+\newcommand{\im}{\operatorname{im}}
+\newcommand{\Hom}{{\rm{Hom}}}
+\newcommand{\diam}{{\rm{diam}}}
+\newcommand{\ovl}{\overline}
+\newcommand{\norm}[1]{||#1||}
+\newcommand{\test}[1]{\mathcal D(#1)}
+\newcommand{\dist}[1]{\mathcal D'(#1)}
+\newcommand{\diff}[1]{(#1, \mathcal P^U_{#1})}
+
+
+
+\newcommand{\set}[2]{\{#1 \, | \, #2 \}}
+
+\newcommand{\lrang}[1]{ \langle #1 \rangle }
+
+
+\newcommand{\M}{\mathcal{M}}
+
+
+%Grammar
+\newcommand{\smid}{\ \mid \ }
+\newcommand{\defined}{\coloneqq}
+\newcommand{\subst}[3]{#1\{#2 / #3\}}
+
+%% types
+\newcommand{\nat}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+
+%% stlc
+\newcommand{\lamb}[2]{\lambda #1. \ #2}
+\newcommand{\app}[2]{#1 \ #2}
+
+%% cbpv
+\newcommand{\produce}{\mathsf{produce}\ }
+\newcommand{\thunk}{\mathsf{thunk}\ }
+\newcommand{\force}{\mathsf{force}\ }
+\newcommand{\letbe}[3]{\mathsf{let}\ #1 \ \mathsf{be}\ #2 \ \mathsf{in}\ #3}
+\newcommand{\mtox}[3]{#1 \ \mathsf{to} \ #2 . \ #3}
+\newcommand{\consume}{\mathsf{consume}\ }
+\newcommand{\supply}{\mathsf{supply}\ }
+
+%% probabilistic programming
+\newcommand{\rand}{\mathsf{rand}}
+
+
+% Typing rule environment
+
+\newenvironment{typing}
+{\begin{center}
+    \begin{tabular}{c c}
+      \begin{mathpar}
+}
+{
+   \end{mathpar}
+  \end{tabular}
+\end{center}
+}
+
+
+
+
+\begin{document}
+
+\title{A probabilistic CPBV}
+
+\author{Pedro Amorim}
+
+\maketitle
+
+\section{Syntax}
+
+The type grammar is the same as the non-probabilistic variant of CBPV:
+
+\begin{align*}
+  & \overline{\tau} \defined F \tau \smid \tau \to \overline \tau \\
+  & \tau \defined U \overline{\tau} \smid 1 \smid \tau \times \tau \smid \R\\
+\end{align*}
+
+
+The syntax and typing rules are also very similar to the regular CBPV expect for:
+
+\begin{typing}
+  \inferrule{ }{\Gamma \vdash^c \rand : F \R}
+\end{typing}
+
+The program $\rand$ represents the uniform measure over the interval $[ 0, 1]$ and being an effectful operation, requires the type constructor $F$.
+
+\section{Operational semantics}
+
+To capture the fact that programs denote measures, our operational semantics will also have an stochastic flavor: the small-step operational semantics is a markov kernel (generalized transition matrix).
+
+We say that $t \rightarrow \mu$ if the program $t$, after one step of computation, evaluates to the measure over terms $\mu$. Note that since we have a type for real numbers, we require a non-trivial $\sigma$-algebra over the set of terms.
+
+The two interesting reduction rules are the ones for $\rand$ and the context rules:
+
+\begin{typing}
+
+  \inferrule{ }{\rand \rightarrow \mu}
+
+  \and
+
+  \inferrule{t \rightarrow \mu_t}{E[t] \rightarrow \mu_t^*(t \mapsto E[t]) }
+  
+\end{typing}
+
+Where $\mu$ is the lebesgue uniform measure and $\mu^*(f)$ is the pushforward measure of $\mu$ along the measurable function $f$.
+
+To define multiple reductions of a term we simply make use of Kernel composition. We need to prove that everything is measurable, but that's not terribly difficult to do and has been done before.
+
+
+
+\end{document}
