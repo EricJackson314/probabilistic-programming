@@ -1,0 +1,232 @@
+\documentclass{article}
+
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathpartir}
+\usepackage{multicol}
+
+\newtheorem*{theorem}{Theorem}
+\newtheorem*{prop}{Proposition}
+\newtheorem*{definition}{Definition}
+\newtheorem*{lemma}{Lemma}
+\newtheorem*{example}{Example}
+\newtheorem*{remark}{Remark}
+\newtheorem*{claim}{Claim}
+
+% math
+\renewcommand\qedsymbol{\bf QED}
+\DeclareMathOperator*\R{\mathbb{R}}
+\DeclareMathOperator*\Q{\mathbb{Q}}
+\DeclareMathOperator*\Z{\mathbb{Z}}
+\DeclareMathOperator*\N{\mathbb{N}}
+\DeclareMathOperator*\llb{[\![}
+\DeclareMathOperator*\rrb{]\!]}
+
+% syntax
+\newcommand{\rand}{\mathsf{rand}}
+
+\geometry{letterpaper, total={7.5in, 10in}, left=.5in, top=.5in}
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\hrule
+	\smallskip
+	\hrule\hrule\hrule
+	\medskip
+	\noindent
+	{\huge \bf Probabilistic Lambda Calculi}
+	\medskip
+	\newline
+	{\huge \it Research Project}
+
+	\hrule
+	\medskip
+	\noindent
+	{\Large \bf Pedro Amorim and Eric Jackson}
+	\medskip
+	\hrule\hrule\hrule
+	\smallskip
+	\hrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Abstract}
+
+In section 2, we introduce a probabilistic version of Call-By-Push Value.
+In section 3, we introduce two probabilistic lambda-calculi,
+$\lambda_{IID}$ and $\lambda_{PC}$, which correspond to 
+independent and identically distributed sampling 
+and perfectly correlated sampling, respectively.
+
+\section{Probabilistic Call-By-Push-Value}
+\subsection{Syntax}
+\subsubsection*{Types}
+	CBPV types are given by $\tau = A \,|\, B$
+	where $A$ and $B$ are defined inductively according to the following rules:
+	\begin{equation*}
+		\begin{split}
+			A &::= 
+			U \underline{B} 
+			\,|\, A + A
+			\,|\, A \times A
+			\,|\, 1			
+			\,|\, \R \\
+			\underline{B} &::=
+			F A
+			\,|\, \underline{B} \times \underline{B}
+			\,|\, A \to \underline{B} \\
+		\end{split}
+	\end{equation*}
+	
+\subsubsection*{Expressions}
+	\begin{equation*}
+	\end{equation*}
+
+\subsection{Static Semantics}
+	\inferrule{ }{\Gamma \vdash^c \rand : F \R}
+
+\subsection{Denotational Semantics}
+
+\section{$\lambda_{IID}$ and $\lambda_{PC}$}
+
+\subsection{Syntax}
+
+\section{Translating $\lambda_{IID}$ and $\lambda_{PC}$ to CBPV}
+Rather than defining denotational semantics for $\lambda_{IID}$ and $\lambda_{PC}$,
+we will define a translation from each of these languages into CBPV.
+Then, we can use the CBPV semantics to generate denotational semantics.
+
+\subsection{Types}
+We begin with defining type translations from $\lambda_{IID}$ and $\lambda_{PC}$ to CBVP.
+These translations are essentially identical to the translations of CBN and CBV to CBPV presented in Levy's thesis.
+
+\begin{multicols}{2}
+\subsubsection*{$\lambda_{IID}$}
+\hrule\hrule
+\medskip
+	\begin{equation*}
+		\begin{split}
+			\llb {\bf unit} {\rrb}_{IID} &\triangleq F 1 \\
+			\llb \R {\rrb}_{IID} &\triangleq F \R \\
+			\llb \tau_1 \to \tau_2 {\rrb}_{IID} &\triangleq (U \llb \tau_1 {\rrb}_{IID}) \to \llb \tau_2 {\rrb}_{IID}\\
+			\llb \tau_1 + \tau_2 {\rrb}_{IID} &\triangleq F(U\llb \tau_1 {\rrb}_{IID} + U\llb \tau_2 {\rrb}_{IID})\\
+			\llb \tau_1 \times \tau_2 {\rrb}_{IID} &\triangleq \llb \tau_1 {\rrb}_{IID} \times \llb \tau_2 {\rrb}_{IID}\\
+		\end{split}
+	\end{equation*}
+		
+\subsubsection*{$\lambda_{PC}$}
+\hrule\hrule
+\medskip
+	\begin{equation*}
+		\begin{split}
+			\llb {\bf unit} {\rrb}_{PC} &\triangleq 1 \\
+			\llb \R {\rrb}_{PC} &\triangleq \R \\
+			\llb \tau_1 \to \tau_2 {\rrb}_{PC} &\triangleq U (\llb \tau_1 {\rrb}_{PC} \to \llb F\tau_2 {\rrb}_{PC})\\
+			\llb \tau_1 + \tau_2 {\rrb}_{PC} &\triangleq U\llb \tau_1 {\rrb}_{PC} + \llb \tau_2 {\rrb}_{PC}\\
+			\llb \tau_1 \times \tau_2 {\rrb}_{PC} &\triangleq U(F\llb\tau_1{\rrb}_{PC} \times F\llb\tau_2{\rrb}_{PC})\\
+		\end{split}
+	\end{equation*}
+\end{multicols}
+
+\subsection{Expressions}
+Now, we define translations from expressions in $\lambda_{IID}$ and $\lambda_{PC}$
+to CBPV.
+\subsubsection*{$\lambda_{IID}$}
+\hrule\hrule
+\medskip
+	\begin{equation*}
+		\begin{split}
+			\mathcal{T} [\![x{\rrb}_{IID} &\triangleq 
+			\text{\bf force } x \\
+			\mathcal{T} [\![\lambda x.\, e{\rrb}_{IID} &\triangleq 
+			\lambda x.\, \mathcal[\![ e {\rrb}_{IID} \\
+			\mathcal{T} [\![\text{\bf let} x = e_1 \text{ \bf in } e_2{\rrb}_{IID} &\triangleq 
+			\text{\bf let } x \text{ \bf be } \mathcal{T}[\![e_1{\rrb}_{IID}.\, \mathcal{T}[\![e_2{\rrb}_{IID}\\
+			\mathcal{T} [\![e_1\, e_2 {\rrb}_{IID} &\triangleq 
+			(\text{\bf thunk } \mathcal{T}[\![e_2{\rrb}_{IID})`\, \mathcal{T}[\![e_1{\rrb}_{IID}\\
+			\mathcal{T} [\![\text{\bf coin}{\rrb}_{IID} &\triangleq
+			\text{\bf coin} \\
+			\mathcal{T} [\![\text{\bf rand}{\rrb}_{IID} &\triangleq
+			\text{\bf rand} \\
+			\mathcal{T} [\![\text{\bf inl}_{\tau_1 + \tau_2} e{\rrb}_{IID} &\triangleq
+			\text{\bf produce inl thunk } \mathcal{T}[\![e{\rrb}_{IID} \\
+			\mathcal{T} [\![\text{\bf inr}_{\tau_1 + \tau_2} e{\rrb}_{IID} &\triangleq
+			\text{\bf produce inr thunk } \mathcal{T}[\![e{\rrb}_{IID} \\
+			\mathcal{T} [\![\text{\bf case } e_1 \text{\bf of } e_2 | e_3{\rrb}_{IID} &\triangleq	
+			\mathcal{T}[\![ e_1{\rrb}_{IID} \text{ \bf to } z. \text{ \bf pm } z \text{ \bf as } 
+			\{\text{\bf inl } x. \mathcal{T}[\![ e_2{\rrb}_{IID}, 
+			\text{ \bf inr } x. \mathcal{T}[\![ e_3{\rrb}_{IID}\} \\
+			\mathcal{T} [\![(e_1, e_2){\rrb}_{IID} &\triangleq \\
+			\mathcal{T} [\![\text{\bf \#1 } e{\rrb}_{IID} &\triangleq \\
+			\mathcal{T} [\![\text{\bf \#2 } e{\rrb}_{IID} &\triangleq \\
+			\mathcal{T} [\![e_1 \text{ \bf to } x \text{ \bf in } e2{\rrb}_{IID} &\triangleq \\
+		\end{split}
+	\end{equation*}
+	
+		
+\subsubsection*{$\lambda_{PC}$}	
+\hrule\hrule
+\medskip
+	\begin{equation*}
+		\begin{split}
+			\mathcal{T} [\![x{\rrb}_{PC} &\triangleq 
+			\text{\bf produce } x \\
+			\mathcal{T} [\![\lambda x.\, e{\rrb}_{PC} &\triangleq 
+			\text{\bf produce thunk } \lambda x.\, \mathcal[\![ e {\rrb}_{PC} \\
+			\mathcal{T} [\![\text{\bf let} x = e_1 \text{ \bf in } e_2{\rrb}_{PC} &\triangleq 
+			\mathcal{T}[\![e_1{\rrb}_{PC} \text{ \bf to } x.\, \mathcal{T}[\![e_2{\rrb}_{PC}\\
+			\mathcal{T} [\![e_1\, e_2{\rrb}_{PC} &\triangleq 
+			\mathcal{T}[\![e_2{\rrb}_{PC} \text{ \bf to } x.\, \mathcal{T}[\![e_1{\rrb}_{PC} \text{ \bf to } f.\, x` (\text{\bf force } f)\\
+			\mathcal{T} [\![\text{\bf coin}{\rrb}_{PC} &\triangleq 
+			\text{\bf produce coin} \\
+			\mathcal{T} [\![\text{\bf rand}{\rrb}_{PC} &\triangleq
+			\text{\bf produce rand} \\
+			\mathcal{T} [\![\text{\bf inl}_{\tau_1 + \tau_2} e{\rrb}_{PC} &\triangleq
+			\mathcal{T}[\![e{\rrb}_{PC} \text{ \bf to } z.\, \text{\bf produce inl } z \\
+			\mathcal{T} [\![\text{\bf inr}_{\tau_1 + \tau_2} e{\rrb}_{PC} &\triangleq
+			\mathcal{T}[\![e{\rrb}_{PC} \text{ \bf to } z.\, \text{\bf produce inr } z \\
+			\mathcal{T} [\![\text{\bf case } e_1 \text{\bf of } e_2 | e_3{\rrb}_{PC} &\triangleq
+			\mathcal{T}[\![ e_1{\rrb}_{PC} \text{ \bf to } z. \text{ \bf pm } z \text{ \bf as } 
+			\{ \text{\bf inl } x. \mathcal{T}[\![ e_2{\rrb}_{PC}, \text{ \bf inr } x. \mathcal{T}[\![ e_3{\rrb}_{PC}\} \\
+			\mathcal{T} [\![(e_1, e_2){\rrb}_{PC} &\triangleq \\
+			\mathcal{T} [\![\text{\bf \#1 } e{\rrb}_{PC} &\triangleq \\
+			\mathcal{T} [\![\text{\bf \#2 } e{\rrb}_{PC} &\triangleq \\
+			\mathcal{T} [\![e_1 \text{ \bf to } x \text{ \bf in } e2{\rrb}_{PC} &\triangleq \\
+		\end{split}
+	\end{equation*}
+
+\begin{theorem}
+	If $\Gamma \vdash_{IID} e : \tau$ 
+	then $$\Gamma \vdash \llb e {\rrb}_{IID} : {\llb \tau\rrb}_{IID}$$
+	and if $\Gamma \vdash_{PC} e : \tau$ 
+	then $$\Gamma \vdash \llb e {\rrb}_{PC} : {\llb \tau\rrb}_{PC}$$
+\end{theorem}
+
+\begin{proof}
+First, assume $\Gamma \vdash_{IID} e : \tau$.
+We proceed by induction on $e$.
+\begin{itemize}
+	\item {\bf Case:} $e = x$ ... TODO!
+	
+	\item {\bf Case:} $e = \lambda x : \tau .\, e'$.
+	By inspection, $\Gamma \vdash_{IID} e : \tau \to \tau'$ for some $\tau'$ such that
+	$\Gamma_{x : \tau} \vdash_{IID}  e' : \tau'$.
+	Then $\llb e {\rrb}_{IID} = \lambda x. \llb e' \rrb_{IID}$.
+	
+	\item TODO!
+\end{itemize}
+
+Now, assume $\Gamma \vdash_{PC} e : \tau$. TODO!
+\end{proof}
+
+\begin{theorem}
+	If $\Gamma \vdash_{IID} e : \tau_1 \times \tau_2$
+	then $\llb e \rrb = \mu_1 \times \mu_2$.
+\end{theorem}
+
+\begin{proof}
+TODO!
+\end{proof}
+
+\end{document}
