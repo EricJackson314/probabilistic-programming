@@ -24,8 +24,37 @@
 \DeclareMathOperator*\llb{[\![}
 \DeclareMathOperator*\rrb{]\!]}
 
+% languages
+\newcommand{\iid}{\mathsf{IID}}
+\newcommand{\pc}{\mathsf{PC}}
+
 % syntax
-\newcommand{\rand}{\mathsf{rand}}
+\newcommand{\x}{\mathsf{\,x\,}}
+\newcommand{\y}{\mathsf{\,y\,}}
+\newcommand{\unit}{\mathsf{unit\,}}
+\newcommand{\letc}{\mathsf{let \,}}
+\newcommand{\inc}{\mathsf{\, in \,}}
+\newcommand{\toc}{\mathsf{\, to \,}}
+\newcommand{\rand}{\mathsf{rand\,}}
+\newcommand{\coin}{\mathsf{coin\,}}
+\newcommand{\inl}{\mathsf{inl\,}}
+\newcommand{\inr}{\mathsf{inr\,}}
+\newcommand{\case}[3]{\mathsf{case} \, #1 \, \mathsf{of} \, #2 \, | \, #3 \,}
+\newcommand{\1}{\mathsf{\,\#1\,}}
+\newcommand{\2}{\mathsf{\,\#2\,}}
+
+% cbpv
+\newcommand{\force}{\mathsf{force \,}}
+\newcommand{\be}{\mathsf{\, be \,}}
+\newcommand{\thunk}{\mathsf{thunk \,}}
+\newcommand{\produce}{\mathsf{produce \,}}
+\newcommand{\pmc}{\mathsf{\, pm \,}}
+\newcommand{\as}{\mathsf{\, as \,}}
+\newcommand{\B}{\underline{B}}
+
+% translation
+\newcommand{\semiid}[1]{[\![ #1 {]\!]}_{\mathsf{IID}}}
+\newcommand{\sempc}[1]{[\![ #1 {]\!]}_{\mathsf{PC}}}
 
 \geometry{letterpaper, total={7.5in, 10in}, left=.5in, top=.5in}
 
@@ -67,111 +96,239 @@ and perfectly correlated sampling, respectively.
 	\begin{equation*}
 		\begin{split}
 			A &::= 
-			U \underline{B} 
+			U \B
 			\,|\, A + A
 			\,|\, A \times A
 			\,|\, 1			
 			\,|\, \R \\
-			\underline{B} &::=
+			\B &::=
 			F A
-			\,|\, \underline{B} \times \underline{B}
-			\,|\, A \to \underline{B} \\
+			\,|\, \B \times \B
+			\,|\, A \to \B \\
 		\end{split}
 	\end{equation*}
+	As discussed in Levy's thesis,
+	$A$ can be thought of as defining values
+	and $B$ computations.
 	
 \subsubsection*{Expressions}
 	\begin{equation*}
+		\begin{split}
+			V, M ::=\,
+			 & \x \\
+			|& () \\
+			|& \lambda \x.\, M \\
+			|& \letc \x \be V.\, M \\
+			|& V` M \\
+			|& \produce V \\
+			|& M \toc \x.\, N \\
+			|& \thunk M \\
+			|& \force V \\
+			|& (M, M) \\
+			|& \1 M \\
+			|& \2 M \\
+			|& \pmc V \as (\!\x\!,\y\!).\, M \\
+			|& \inl_{A + A} V \\
+			|& \inr_{A + A} V \\
+			|& \pmc V \as \{\!\x\!. M, \y\!. M\} \\
+			|& \coin \\
+			|& \rand \\
+		\end{split}
 	\end{equation*}
 
+\newpage
 \subsection{Static Semantics}
-	\inferrule{ }{\Gamma \vdash^c \rand : F \R}
+\begin{multicols}{2}
+	\subsubsection*{Unit}
+	\begin{equation*}
+		\inferrule{ }{\Gamma \vdash^v () : 1}
+	\end{equation*}
+
+	\subsubsection*{Functions and Application}
+	\begin{equation*}
+		\inferrule{\Gamma_{\x : A} \vdash^v M : \B}{\Gamma \vdash^c \lambda \x.\, M : A \to \B} 
+	\end{equation*}
+	\begin{equation*}
+		\inferrule{\Gamma \vdash^v V : A \\ \Gamma_{V : A} \vdash^c M : A \to \B}
+		{\Gamma \vdash^c V` M : \B} 
+	\end{equation*}
+	\begin{equation*}
+		\inferrule{\Gamma \vdash^v V : A \\ \Gamma_{V : A} \vdash^c M : A \to \B}
+		{\Gamma \vdash^c \letc \x \be V.\, M : \B} 
+	\end{equation*}
+	
+	\subsubsection*{Produce and To}
+	\begin{equation*}
+		\inferrule{\Gamma \vdash^v V : A}{\Gamma \vdash^c \produce V : F A} 
+	\end{equation*}
+	\begin{equation*}
+		\inferrule{\Gamma \vdash^c M : F A \\ \Gamma_{\x : A} \vdash^c N : \B}
+		{\Gamma \vdash^c M \toc \x.\, N : \B} 
+	\end{equation*}
+	
+	\subsubsection*{Thunk and Force}
+	\begin{equation*}
+		\inferrule{\Gamma \vdash^c M : \B}{\Gamma \vdash^v \thunk M : U \B} 
+	\end{equation*}
+	\begin{equation*}
+		\inferrule{\Gamma \vdash^v V : U \B}{\Gamma \vdash^c \force V : \B} 
+	\end{equation*}
+
+	\subsubsection*{Products}
+	\begin{equation*}
+		\inferrule{\Gamma \vdash^c M: \B \\ \Gamma \vdash^c M' : \B'}
+		{\Gamma \vdash^c (M, M') : \B \times \B'} 
+	\end{equation*}
+	\begin{equation*}
+		\inferrule{\Gamma \vdash^c M: \B \times \B'}{\Gamma \vdash^c \1 M : \B} 
+	\end{equation*}
+	\begin{equation*}
+		\inferrule{\Gamma \vdash^c M: \B \times \B'}{\Gamma \vdash^c \1 M : \B'} 
+	\end{equation*}
+	\begin{equation*}
+		\inferrule{\Gamma \vdash^c (M, M') : \B \times \B' \\ 
+		\Gamma_{\x : \B, \y : \B'} \vdash^c M : \B}
+		{\Gamma \vdash^c \pmc V \as (\!\x\!,\y\!).\, M : \B} 
+	\end{equation*}
+	
+	\subsubsection*{Sums}
+	\begin{equation*}
+		\inferrule{\Gamma \vdash^v V: A}
+		{\Gamma \vdash^v \inl_{A + A'} V : \tau_1 + \tau_2} 
+	\end{equation*}
+	\begin{equation*}
+		\inferrule{\Gamma \vdash^v V: A}
+		{\Gamma \vdash^v \inr_{A + A'} V : \tau_1 + \tau_2} 
+	\end{equation*}
+	\begin{equation*}
+		\inferrule{\Gamma \vdash^v V : A + A' \\ 
+		\Gamma_{\x : A, \y : A'} \vdash^c M : \B}
+		{\Gamma \vdash^c \pmc V \as \{\!\x\!. M, \y\!. M\} : \B} 
+	\end{equation*}
+
+	\subsubsection*{Random Variables}
+	\begin{equation*}
+		\inferrule{ }{\Gamma \vdash^c \coin : F \R}
+	\end{equation*}
+	\begin{equation*}
+		\inferrule{ }{\Gamma \vdash^c \rand : F \R}
+	\end{equation*}
+\end{multicols}
 
 \subsection{Denotational Semantics}
 
-\section{$\lambda_{IID}$ and $\lambda_{PC}$}
+\newpage
+\section{$\lambda_{\iid}$ and $\lambda_{\pc}$}
 
 \subsection{Syntax}
 
-\section{Translating $\lambda_{IID}$ and $\lambda_{PC}$ to CBPV}
-Rather than defining denotational semantics for $\lambda_{IID}$ and $\lambda_{PC}$,
+\subsubsection*{Types}
+	The types of $\lambda_{\iid}$ and $\lambda_{\pc}$ are defined according to the following rules
+	\begin{equation*}
+		\tau ::=
+		\unit
+		\,|\, \R
+		\,|\, \tau \to \tau
+		\,|\, \tau + \tau
+		\,|\, \tau \times \tau
+	\end{equation*}
+\subsubsection*{Expressions}
+	The expressions of  $\lambda_{\iid}$ and $\lambda_{\pc}$ of the following form
+	\begin{equation*}
+		\begin{split}
+			e ::=\,
+			 & x \\
+			|& () \\
+			|& \lambda \x\! : \tau.\, e \\
+			|& \letc \x = e \inc e \\
+			|& e\, e \\
+			|& \coin \\
+			|& \rand \\
+			|& \inl_{\tau_1 + \tau_2} e \\
+			|& \inr_{\tau_1 + \tau_2} e \\
+			|& \case{e}{e}{e} \\
+			|& (e,\, e) \\
+			|& \1 e \\
+			|& \2 e \\
+			|& e \toc \x \inc e \\
+		\end{split}
+	\end{equation*}
+
+\subsection{Static Semantics}
+
+\newpage
+\section{Translating $\lambda_{\iid}$ and $\lambda_{\pc}$ to CBPV}
+Rather than defining denotational semantics for $\lambda_{\iid}$ and $\lambda_{\pc}$,
 we will define a translation from each of these languages into CBPV.
 Then, we can use the CBPV semantics to generate denotational semantics.
 
 \subsection{Types}
-We begin with defining type translations from $\lambda_{IID}$ and $\lambda_{PC}$ to CBVP.
+We begin with defining type translations from $\lambda_{\iid}$ and $\lambda_{\pc}$ to CBVP.
 These translations are essentially identical to the translations of CBN and CBV to CBPV presented in Levy's thesis.
 
+
 \begin{multicols}{2}
-\subsubsection*{$\lambda_{IID}$}
+\subsubsection*{$\lambda_\iid$}
 \hrule\hrule
 \medskip
 	\begin{equation*}
 		\begin{split}
-			\llb {\bf unit} {\rrb}_{IID} &\triangleq F 1 \\
-			\llb \R {\rrb}_{IID} &\triangleq F \R \\
-			\llb \tau_1 \to \tau_2 {\rrb}_{IID} &\triangleq (U \llb \tau_1 {\rrb}_{IID}) \to \llb \tau_2 {\rrb}_{IID}\\
-			\llb \tau_1 + \tau_2 {\rrb}_{IID} &\triangleq F(U\llb \tau_1 {\rrb}_{IID} + U\llb \tau_2 {\rrb}_{IID})\\
-			\llb \tau_1 \times \tau_2 {\rrb}_{IID} &\triangleq \llb \tau_1 {\rrb}_{IID} \times \llb \tau_2 {\rrb}_{IID}\\
+			\semiid{\unit} &\triangleq F 1 \\
+			\semiid{\R} &\triangleq F \R \\
+			\semiid{\tau_1 \to \tau_2} &\triangleq (U \semiid{\tau_1}) \to \semiid{\tau_2} \\
+			\semiid{\tau_1 + \tau_2} &\triangleq F(U \semiid{\tau_1} + U \semiid{\tau_2}) \\
+			\semiid{\tau_1 \times \tau_2} &\triangleq \semiid{\tau_1} \times \semiid{\tau_2} \\
 		\end{split}
 	\end{equation*}
 		
-\subsubsection*{$\lambda_{PC}$}
+\subsubsection*{$\lambda_\pc$}
 \hrule\hrule
 \medskip
 	\begin{equation*}
 		\begin{split}
-			\llb {\bf unit} {\rrb}_{PC} &\triangleq 1 \\
-			\llb \R {\rrb}_{PC} &\triangleq \R \\
-			\llb \tau_1 \to \tau_2 {\rrb}_{PC} &\triangleq U (\llb \tau_1 {\rrb}_{PC} \to \llb F\tau_2 {\rrb}_{PC})\\
-			\llb \tau_1 + \tau_2 {\rrb}_{PC} &\triangleq U\llb \tau_1 {\rrb}_{PC} + \llb \tau_2 {\rrb}_{PC}\\
-			\llb \tau_1 \times \tau_2 {\rrb}_{PC} &\triangleq U(F\llb\tau_1{\rrb}_{PC} \times F\llb\tau_2{\rrb}_{PC})\\
+			\sempc{\unit} &\triangleq 1 \\
+			\sempc{\R} &\triangleq \R \\
+			\sempc{\tau_1 \to \tau_2} &\triangleq U (\sempc{\tau_1} \to F\sempc{\tau_2}) \\
+			\sempc{\tau_1 + \tau_2} &\triangleq U\sempc{\tau_1} + \sempc{\tau_2} \\
+			\sempc{\tau_1 \times \tau_2} &\triangleq U(F\sempc{\tau_1} \times F\sempc{\tau_2}) \\
 		\end{split}
 	\end{equation*}
 \end{multicols}
 
 \subsection{Expressions}
-Now, we define translations from expressions in $\lambda_{IID}$ and $\lambda_{PC}$
+Now, we define translations from expressions in $\iid$ and $\pc$
 to CBPV.
-\subsubsection*{$\lambda_{IID}$}
+
+% CBN
+\subsubsection*{$\iid$}
 \hrule\hrule
 \medskip
 	\begin{equation*}
 		\begin{split}
-			\mathcal{T} [\![x{\rrb}_{IID} &\triangleq 
-			\text{\bf force } x \\
-			\mathcal{T} [\![\lambda x.\, e{\rrb}_{IID} &\triangleq 
-			\lambda x.\, \mathcal[\![ e {\rrb}_{IID} \\
-			\mathcal{T} [\![\text{\bf let} x = e_1 \text{ \bf in } e_2{\rrb}_{IID} &\triangleq 
-			\text{\bf let } x \text{ \bf be } \mathcal{T}[\![e_1{\rrb}_{IID}.\, \mathcal{T}[\![e_2{\rrb}_{IID}\\
-			\mathcal{T} [\![e_1\, e_2 {\rrb}_{IID} &\triangleq 
-			(\text{\bf thunk } \mathcal{T}[\![e_2{\rrb}_{IID})`\, \mathcal{T}[\![e_1{\rrb}_{IID}\\
-			\mathcal{T} [\![\text{\bf coin}{\rrb}_{IID} &\triangleq
-			\text{\bf coin} \\
-			\mathcal{T} [\![\text{\bf rand}{\rrb}_{IID} &\triangleq
-			\text{\bf rand} \\
-			\mathcal{T} [\![\text{\bf inl}_{\tau_1 + \tau_2} e{\rrb}_{IID} &\triangleq
-			\text{\bf produce inl thunk } \mathcal{T}[\![e{\rrb}_{IID} \\
-			\mathcal{T} [\![\text{\bf inr}_{\tau_1 + \tau_2} e{\rrb}_{IID} &\triangleq
-			\text{\bf produce inr thunk } \mathcal{T}[\![e{\rrb}_{IID} \\
-			\mathcal{T} [\![\text{\bf case } e_1 \text{\bf of } e_2 | e_3{\rrb}_{IID} &\triangleq	
-			\mathcal{T}[\![ e_1{\rrb}_{IID} \text{ \bf to } z. \text{ \bf pm } z \text{ \bf as } 
-			\{\text{\bf inl } x. \mathcal{T}[\![ e_2{\rrb}_{IID}, 
-			\text{ \bf inr } x. \mathcal{T}[\![ e_3{\rrb}_{IID}\} \\
-			\mathcal{T} [\![(e_1, e_2){\rrb}_{IID} &\triangleq \\
-			\mathcal{T} [\![\text{\bf \#1 } e{\rrb}_{IID} &\triangleq \\
-			\mathcal{T} [\![\text{\bf \#2 } e{\rrb}_{IID} &\triangleq \\
-			\mathcal{T} [\![e_1 \text{ \bf to } x \text{ \bf in } e2{\rrb}_{IID} &\triangleq \\
+			\semiid{x} &\triangleq \force x \\
+			\semiid{\lambda x.\, e} &\triangleq \lambda x.\, \semiid{e} \\
+			\semiid{\letc x = e_1 \inc  e_2} &\triangleq \letc x \be \thunk \semiid{e_1}.\, \semiid{e_2}  \\
+			\semiid{e_1\, e_2}&\triangleq (\thunk \semiid{e_2})`\, \semiid{e_1}\\
+			\semiid{\coin} &\triangleq \coin \\
+			\semiid{\rand} &\triangleq \rand \\
+			\semiid{\inl_{\tau_1 + \tau_2} e} &\triangleq \produce \inl \thunk \semiid{e} \\
+			\semiid{\inr_{\tau_1 + \tau_2} e} &\triangleq \produce \inr \thunk \semiid{e} \\
+			\semiid{\case{e_1}{e_2}{e_3}} &\triangleq	\semiid{e_1} \toc z.\, \pmc z \as 
+				\{\inl x.\, \semiid{e_2}, \inr x.\, \semiid{e_3}\} \\
+			\semiid{(e_1, e_2)} &\triangleq \\
+			\semiid{\1 e} &\triangleq \\
+			\semiid{\2 e} &\triangleq \\
+			\semiid{e_1 \toc x \inc e2} &\triangleq \letc x = \sempc{e_1} \inc \semiid{e_2} \\
 		\end{split}
 	\end{equation*}
 	
-		
-\subsubsection*{$\lambda_{PC}$}	
+% CBV
+\subsubsection*{$\pc$}	
 \hrule\hrule
 \medskip
 	\begin{equation*}
 		\begin{split}
-			\mathcal{T} [\![x{\rrb}_{PC} &\triangleq 
-			\text{\bf produce } x \\
+			\sempc{x} &\triangleq  \force x \\
 			\mathcal{T} [\![\lambda x.\, e{\rrb}_{PC} &\triangleq 
 			\text{\bf produce thunk } \lambda x.\, \mathcal[\![ e {\rrb}_{PC} \\
 			\mathcal{T} [\![\text{\bf let} x = e_1 \text{ \bf in } e_2{\rrb}_{PC} &\triangleq 
@@ -179,9 +336,9 @@ to CBPV.
 			\mathcal{T} [\![e_1\, e_2{\rrb}_{PC} &\triangleq 
 			\mathcal{T}[\![e_2{\rrb}_{PC} \text{ \bf to } x.\, \mathcal{T}[\![e_1{\rrb}_{PC} \text{ \bf to } f.\, x` (\text{\bf force } f)\\
 			\mathcal{T} [\![\text{\bf coin}{\rrb}_{PC} &\triangleq 
-			\text{\bf produce coin} \\
+			\text{\bf force coin} \\
 			\mathcal{T} [\![\text{\bf rand}{\rrb}_{PC} &\triangleq
-			\text{\bf produce rand} \\
+			\text{\bf force rand} \\
 			\mathcal{T} [\![\text{\bf inl}_{\tau_1 + \tau_2} e{\rrb}_{PC} &\triangleq
 			\mathcal{T}[\![e{\rrb}_{PC} \text{ \bf to } z.\, \text{\bf produce inl } z \\
 			\mathcal{T} [\![\text{\bf inr}_{\tau_1 + \tau_2} e{\rrb}_{PC} &\triangleq
@@ -196,37 +353,121 @@ to CBPV.
 		\end{split}
 	\end{equation*}
 
-\begin{theorem}
-	If $\Gamma \vdash_{IID} e : \tau$ 
-	then $$\Gamma \vdash \llb e {\rrb}_{IID} : {\llb \tau\rrb}_{IID}$$
-	and if $\Gamma \vdash_{PC} e : \tau$ 
-	then $$\Gamma \vdash \llb e {\rrb}_{PC} : {\llb \tau\rrb}_{PC}$$
+\begin{theorem} $\,$
+
+	\begin{itemize}
+		\item
+		If $\Gamma \vdash_{\iid} e : \tau$ 
+		then $\semiid{\Gamma} \vdash_c \semiid{e} : \semiid{\tau}$.
+		\item
+		If $\Gamma \vdash_{\iid} e : \tau$ 
+		then $\sempc{\Gamma} \vdash_c \sempc{e} : \sempc{\tau}$.
+	\end{itemize}
 \end{theorem}
 
-\begin{proof}
-First, assume $\Gamma \vdash_{IID} e : \tau$.
-We proceed by induction on $e$.
+\begin{proof}$\,$
+
+First, assume $\Gamma \vdash_\iid e : \tau$.
+We proceed by mutual induction on $e$.
+% TODO
 \begin{itemize}
-	\item {\bf Case:} $e = x$ ... TODO!
+	\item {\bf Case:} $e = x$.
+	First, $\semiid{e} = \force x$.
+	For some $\tau$, we have $\Gamma \vdash_{\iid} e : \tau$.
+	Consider the possible cases for $\tau$:
+	\begin{itemize}
+		\item $\tau = \unit$.
+		\item $\tau = \R$.
+		\item $\tau = \tau_1 \to \tau_2$.
+		\item $\tau = \tau_1 + \tau_2$.
+		\item $\tau = \tau_1 \times \tau_2$
+	\end{itemize}
 	
 	\item {\bf Case:} $e = \lambda x : \tau .\, e'$.
-	By inspection, $\Gamma \vdash_{IID} e : \tau \to \tau'$ for some $\tau'$ such that
-	$\Gamma_{x : \tau} \vdash_{IID}  e' : \tau'$.
-	Then $\llb e {\rrb}_{IID} = \lambda x. \llb e' \rrb_{IID}$.
+	By inspection, $\Gamma \vdash_{\iid} (\lambda x : \tau .\, e') : \tau \to \tau'$ 
+	for some $\tau'$ such that $\Gamma_{x : \tau} \vdash_{\iid}  e' : \tau'$.
+	Then $\semiid{e} = \lambda x.\, \semiid{e'}$
+	and $\semiid{\tau \to \tau'} = (U \semiid{\tau}) \to \semiid{\tau'}$.
+	By induction, $\semiid{\Gamma_{x : \tau}} \vdash_c \semiid{e'} : \semiid{\tau'}$.
 	
-	\item TODO!
+	\item {\bf Case:} $e = (\letc x = e_1 \inc e_2)$.
+	
+	\item {\bf Case:} $e = e_1\, e_2$.
+	
+	\item {\bf Case:} $e = \rand\!$.
+	By definition, $\Gamma \vdash_\iid \rand : \R$,
+	$\semiid{\rand} = \rand$ and $\semiid{\R} = F \R$.
+	Then $\semiid{\Gamma} \vdash_c \semiid{\rand\!} : \semiid{\R}$.
+	
+	\item {\bf Case:} $e = \coin\!$.
+	By definition, $\Gamma \vdash_\iid \coin : \R$,
+	$\semiid{\coin} = \coin$ and $\semiid{\R} = F \R$.
+	Then $\semiid{\Gamma} \vdash_c \semiid{\coin\!} : \semiid{\R}$.
+	
+	\item {\bf Case:} $e = \inl_{\tau_1 + \tau_2}\, e$.
+	By inspection, $\Gamma \vdash_\iid (\inl_{\tau_1 + \tau_2}\, e) : \tau_1$.
+	Since $\semiid{\inl_{\tau_1 + \tau_2}\, e} =  \produce \inl \thunk \semiid{e}$,
+	
+	\item {\bf Case:} $e = \inr_{\tau_1 + \tau_2}\, e$.
+	
+	\item {\bf Case:} $e = (e_1, e_2)$.
+	
+	\item {\bf Case:} $e = {\bf \#1}\, e$.
+	
+	\item {\bf Case:} $e = {\bf \#2}\, e$.
+	
+	\item {\bf Case:} $e = e_1 \toc x \inc e_2$.
+	
 \end{itemize}
 
-Now, assume $\Gamma \vdash_{PC} e : \tau$. TODO!
+Now, assume $\Gamma \vdash_{\pc} e : \tau$.
+% TODO
+\begin{itemize}
+	\item {\bf Case:} $e = x$.
+
+	\item {\bf Case:} $e = \lambda x : \tau .\, e'$.
+	
+	\item {\bf Case:} $e = (\letc x = e_1 \inc e_2)$.
+	
+	\item {\bf Case:} $e = e_1\, e_2$.
+	
+	\item {\bf Case:} $e = \rand\!$.
+	
+	\item {\bf Case:} $e = \coin\!$.
+	
+	\item {\bf Case:} $e = \inl_{\tau_1 + \tau_2}\, e$.
+	
+	\item {\bf Case:} $e = \inr_{\tau_1 + \tau_2}\, e$.
+	
+	\item {\bf Case:} $e = (e_1, e_2)$.
+	
+	\item {\bf Case:} $e = {\bf \#1}\, e$.
+	
+	\item {\bf Case:} $e = {\bf \#2}\, e$.
+	
+	\item {\bf Case:} $e = e_1 \toc x \inc e_2$.
+	
+\end{itemize}
+
 \end{proof}
 
 \begin{theorem}
-	If $\Gamma \vdash_{IID} e : \tau_1 \times \tau_2$
+	If $\Gamma \vdash_{\iid} e : \tau_1 \times \tau_2$
 	then $\llb e \rrb = \mu_1 \times \mu_2$.
 \end{theorem}
 
 \begin{proof}
 TODO!
 \end{proof}
+
+\section{Potential Applications}
+	\subsection{System Security}
+	% CBN : protocol generate secret.. 
+	% IID. CBV : agent.. one key for whole computation.
+	\subsection{Key Reuse}
+	
+	\subsection{Psuodo-Number Generators}
+	
+	\subsection{Random Variables}
 
 \end{document}
