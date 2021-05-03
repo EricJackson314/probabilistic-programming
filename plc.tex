@@ -289,7 +289,7 @@ These translations are essentially identical to the translations of CBN and CBV 
 			\sempc{\unit} &\triangleq 1 \\
 			\sempc{\R} &\triangleq \R \\
 			\sempc{\tau_1 \to \tau_2} &\triangleq U (\sempc{\tau_1} \to F\sempc{\tau_2}) \\
-			\sempc{\tau_1 + \tau_2} &\triangleq U\sempc{\tau_1} + \sempc{\tau_2} \\
+			\sempc{\tau_1 + \tau_2} &\triangleq U\sempc{\tau_1} + U\sempc{\tau_2} \\
 			\sempc{\tau_1 \times \tau_2} &\triangleq U(F\sempc{\tau_1} \times F\sempc{\tau_2}) \\
 		\end{split}
 	\end{equation*}
@@ -328,31 +328,31 @@ to CBPV.
 \medskip
 	\begin{equation*}
 		\begin{split}
-			\sempc{x} &\triangleq  \force x \\
-			\mathcal{T} [\![\lambda x.\, e{\rrb}_{PC} &\triangleq 
-			\text{\bf produce thunk } \lambda x.\, \mathcal[\![ e {\rrb}_{PC} \\
-			\mathcal{T} [\![\text{\bf let} x = e_1 \text{ \bf in } e_2{\rrb}_{PC} &\triangleq 
-			\mathcal{T}[\![e_1{\rrb}_{PC} \text{ \bf to } x.\, \mathcal{T}[\![e_2{\rrb}_{PC}\\
-			\mathcal{T} [\![e_1\, e_2{\rrb}_{PC} &\triangleq 
-			\mathcal{T}[\![e_2{\rrb}_{PC} \text{ \bf to } x.\, \mathcal{T}[\![e_1{\rrb}_{PC} \text{ \bf to } f.\, x` (\text{\bf force } f)\\
-			\mathcal{T} [\![\text{\bf coin}{\rrb}_{PC} &\triangleq 
-			\text{\bf force coin} \\
-			\mathcal{T} [\![\text{\bf rand}{\rrb}_{PC} &\triangleq
-			\text{\bf force rand} \\
-			\mathcal{T} [\![\text{\bf inl}_{\tau_1 + \tau_2} e{\rrb}_{PC} &\triangleq
-			\mathcal{T}[\![e{\rrb}_{PC} \text{ \bf to } z.\, \text{\bf produce inl } z \\
-			\mathcal{T} [\![\text{\bf inr}_{\tau_1 + \tau_2} e{\rrb}_{PC} &\triangleq
-			\mathcal{T}[\![e{\rrb}_{PC} \text{ \bf to } z.\, \text{\bf produce inr } z \\
-			\mathcal{T} [\![\text{\bf case } e_1 \text{\bf of } e_2 | e_3{\rrb}_{PC} &\triangleq
-			\mathcal{T}[\![ e_1{\rrb}_{PC} \text{ \bf to } z. \text{ \bf pm } z \text{ \bf as } 
-			\{ \text{\bf inl } x. \mathcal{T}[\![ e_2{\rrb}_{PC}, \text{ \bf inr } x. \mathcal{T}[\![ e_3{\rrb}_{PC}\} \\
-			\mathcal{T} [\![(e_1, e_2){\rrb}_{PC} &\triangleq \\
-			\mathcal{T} [\![\text{\bf \#1 } e{\rrb}_{PC} &\triangleq \\
-			\mathcal{T} [\![\text{\bf \#2 } e{\rrb}_{PC} &\triangleq \\
-			\mathcal{T} [\![e_1 \text{ \bf to } x \text{ \bf in } e2{\rrb}_{PC} &\triangleq \\
+			\sempc{()} &\triangleq \produce () \\
+			\sempc{x} &\triangleq  \produce x \\
+			\sempc{\lambda x.\, e} &\triangleq \produce \thunk \lambda x.\, \sempc{e} \\
+			\sempc{\letc x = e_1 \inc e_2} &\triangleq \sempc{e_1} \toc x.\, \sempc{e_2}\\
+			\sempc{e_1\, e_2} &\triangleq 
+			\sempc{e_2} \toc x.\, \sempc{e_1} \toc f.\, x` (\force f)\\
+			\sempc{\coin} &\triangleq \produce \coin \\
+			\sempc{\rand} &\triangleq \produce \rand \\
+			\sempc{\inl_{\tau_1 + \tau_2} e} &\triangleq \sempc{e} \toc z.\, \produce \inl z \\
+			\sempc{\inr_{\tau_1 + \tau_2} e} &\triangleq \sempc{e} \toc z.\, \produce \inr z \\
+			\sempc{\case{e_1}{e_2}{e_3}} &\triangleq
+			\sempc{e_1} \toc z.\, \pmc z \as \{\inl x.\,\sempc{e_2},\,\inl y,\, \sempc{e_3}\}\\
+			\sempc{(e_1, e_2)} &\triangleq \produce \thunk (\sempc{e_1},\, \sempc{e_2}) \\
+			\sempc{\1 e} &\triangleq \sempc{e} \toc x.\, \1 (\force x) \\
+			\sempc{\2 e} &\triangleq \sempc{e} \toc x.\, \2 (\force x) \\
+						\sempc{e_1 \toc x \inc e_2} &\triangleq \\
 		\end{split}
 	\end{equation*}
 
+\subsection{Contexts}
+\subsubsection*{$\iid$}	
+\hrule\hrule
+
+\subsubsection*{$\pc$}	
+\hrule\hrule
 \begin{theorem} $\,$
 
 	\begin{itemize}
@@ -360,95 +360,119 @@ to CBPV.
 		If $\Gamma \vdash_{\iid} e : \tau$ 
 		then $\semiid{\Gamma} \vdash_c \semiid{e} : \semiid{\tau}$.
 		\item
-		If $\Gamma \vdash_{\iid} e : \tau$ 
-		then $\sempc{\Gamma} \vdash_c \sempc{e} : \sempc{\tau}$.
+		If $\Gamma \vdash_{\pc} e : \tau$ 
+		then $\sempc{\Gamma} \vdash_c \sempc{e} : F \sempc{\tau}$.
 	\end{itemize}
 \end{theorem}
 
 \begin{proof}$\,$
 
-First, assume $\Gamma \vdash_\iid e : \tau$.
-We proceed by mutual induction on $e$.
-% TODO
+We proceed by mutual induction on
+$\Gamma \vdash_{\iid} e : \tau$ and $\Gamma \vdash_{\pc} e : \tau$.
+% PC
 \begin{itemize}
-	\item {\bf Case:} $e = x$.
-	First, $\semiid{e} = \force x$.
-	For some $\tau$, we have $\Gamma \vdash_{\iid} e : \tau$.
-	Consider the possible cases for $\tau$:
-	\begin{itemize}
-		\item $\tau = \unit$.
-		\item $\tau = \R$.
-		\item $\tau = \tau_1 \to \tau_2$.
-		\item $\tau = \tau_1 + \tau_2$.
-		\item $\tau = \tau_1 \times \tau_2$
-	\end{itemize}
-	
-	\item {\bf Case:} $e = \lambda x : \tau .\, e'$.
-	By inspection, $\Gamma \vdash_{\iid} (\lambda x : \tau .\, e') : \tau \to \tau'$ 
-	for some $\tau'$ such that $\Gamma_{x : \tau} \vdash_{\iid}  e' : \tau'$.
-	Then $\semiid{e} = \lambda x.\, \semiid{e'}$
-	and $\semiid{\tau \to \tau'} = (U \semiid{\tau}) \to \semiid{\tau'}$.
-	By induction, $\semiid{\Gamma_{x : \tau}} \vdash_c \semiid{e'} : \semiid{\tau'}$.
-	
-	\item {\bf Case:} $e = (\letc x = e_1 \inc e_2)$.
-	
-	\item {\bf Case:} $e = e_1\, e_2$.
-	
-	\item {\bf Case:} $e = \rand\!$.
-	By definition, $\Gamma \vdash_\iid \rand : \R$,
-	$\semiid{\rand} = \rand$ and $\semiid{\R} = F \R$.
-	Then $\semiid{\Gamma} \vdash_c \semiid{\rand\!} : \semiid{\R}$.
-	
-	\item {\bf Case:} $e = \coin\!$.
-	By definition, $\Gamma \vdash_\iid \coin : \R$,
-	$\semiid{\coin} = \coin$ and $\semiid{\R} = F \R$.
-	Then $\semiid{\Gamma} \vdash_c \semiid{\coin\!} : \semiid{\R}$.
-	
-	\item {\bf Case:} $e = \inl_{\tau_1 + \tau_2}\, e$.
-	By inspection, $\Gamma \vdash_\iid (\inl_{\tau_1 + \tau_2}\, e) : \tau_1$.
-	Since $\semiid{\inl_{\tau_1 + \tau_2}\, e} =  \produce \inl \thunk \semiid{e}$,
-	
-	\item {\bf Case:} $e = \inr_{\tau_1 + \tau_2}\, e$.
-	
-	\item {\bf Case:} $e = (e_1, e_2)$.
-	
-	\item {\bf Case:} $e = {\bf \#1}\, e$.
-	
-	\item {\bf Case:} $e = {\bf \#2}\, e$.
-	
-	\item {\bf Case:} $e = e_1 \toc x \inc e_2$.
-	
+	% Unit
+	\item
+	$\Gamma \vdash_\pc () : \unit$.
+	We would like to show $\sempc{\Gamma} \vdash_c \sempc{()} : F \sempc{\unit}$.
+	By the expression and type translation rules, this is equal to 
+	$\sempc{\Gamma} \vdash_c \produce () : F 1$
+	which holds by the CBPV produce and unit type rules.
+	% Variable
+	\item
+	$\Gamma \vdash_\pc x : \tau$.
+	We would like to show $\sempc{\Gamma} \vdash_c \sempc{x} : F \sempc{\tau}$.
+	By the expression and type translation rules, this is equal to 
+	$\sempc{\Gamma} \vdash_c \produce x : F $.
+	By inspection $\Gamma(x) = \tau$, so by the context rule
+	$\sempc{\Gamma}(x) = \sempc{\tau}$.
+	Thus, this typing holds.
+	% Function
+	\item
+	$\Gamma \vdash_\pc \lambda x: \tau.\, e : \tau \to \tau'$.
+	We have
+	\begin{equation*}
+		\sempc{\Gamma} \vdash_c \sempc{\lambda x : \tau.\, e} : F \sempc{\tau \to \tau'}
+		=
+		\sempc{\Gamma} 
+		\vdash_c \produce \thunk \lambda x : \sempc{\tau}.\, \sempc{e} : 
+		F U (\sempc{\tau} \to F \sempc{\tau'})
+	\end{equation*}
+	By the inductive hypothesis, 
+	$\sempc{\Gamma_{x : \tau}} \vdash_c \sempc{e} : \sempc{\tau'}$,
+	thus this typing is valid.
+	% Let
+	\item
+	$\Gamma \vdash_\pc \letc x = e_1 \inc e_2 : \tau$.
+	We have
+	\begin{equation*}
+		\sempc{\Gamma} \vdash_c \sempc{\letc x = e_1 \inc e_2} : F \sempc{\tau}
+		=
+		\sempc{\Gamma} 
+		\vdash_c \sempc{e_1} \toc x.\, \sempc{e_2}  :  F \sempc{\tau'}
+	\end{equation*}
+	By inspection, $\Gamma \vdash_\pc e_1 : \tau'$
+	and 
+	$\Gamma_{x : \tau'} \vdash_\pc e_2 : \tau$.
+	Thus by the inductive hypothesis 
+	$\sempc{\Gamma} \vdash_\pc \sempc{e_1} : F \sempc{\tau'}$
+	and 
+	$\sempc{\Gamma_{x : \tau'}} \vdash_\pc \sempc{e_2} : F \sempc{\tau}$.
+	Thus, by the CVPB to rule, this typing holds.
+	% Application
+	\item
+	$\Gamma \vdash_\pc  e_1\, e_2 : \tau$.
+	We have
+	\begin{equation*}
+		\sempc{\Gamma} \vdash_c \sempc{e_1\, e_2} : F \sempc{\tau}
+		=
+		\sempc{\Gamma} 
+		\vdash_c \sempc{e_2} \toc x.\, \sempc{e_1} \toc f.\, x'(\force f)  :  F \sempc{\tau'}
+	\end{equation*}
+	By inspection, $\Gamma \vdash_\pc e_1 : \tau \to \tau'$
+	and 
+	$\Gamma \vdash_\pc e_2 : \tau$. 
+	By the inductive hypothesis,
+	$\sempc{\Gamma} \vdash_c \sempc{e_1} : F \sempc{\tau \to \tau'}$
+	and
+	$\sempc{\Gamma} \vdash_c \sempc{e_2} : F \sempc{\tau}$.
+	Checking the to and force type rules allows us to verify that this typing is valid.
+	% coin
+	\item
+	$\Gamma \vdash_\pc  \coin : \R$.
+	\begin{equation*}
+		\sempc{\Gamma} \vdash_c \sempc{\coin} : F \sempc{\R}
+		=
+		\sempc{\Gamma} 
+		\vdash_c \produce \coin : F \R
+	\end{equation*}
+	which clearly holds by the CBPV typing rules for coin and produce.
+	% rand
+	\item
+	$\Gamma \vdash_\pc  \rand : \R$.
+	\begin{equation*}
+		\sempc{\Gamma} \vdash_c \sempc{\rand} : F \sempc{\R}
+		=
+		\sempc{\Gamma} 
+		\vdash_c \produce \rand : F \R
+	\end{equation*}
+	which clearly holds by the CBPV typing rules for coin and produce.
+	% product
+	\item
+	$\Gamma \vdash_\pc  (e_1, e_2) : \tau_1 \times \tau_2$.
+	\begin{equation*}
+		\sempc{\Gamma} \vdash_c \sempc{(e_1,\, e_2)}: F \sempc{\tau_1 \times \tau_2}
+		=
+		\sempc{\Gamma} 
+		\vdash_c \produce \thunk (\sempc{e_1},\, \sempc{e_2}) : 
+		F U (F \sempc{\tau_1},\, F \sempc{\tau_2})
+	\end{equation*}
+	By the inductive hypothesis,
+	$\sempc{\Gamma} \vdash_c e_1 : F \sempc{\tau_1}$
+	and
+	$\sempc{\Gamma} \vdash_c e_2 : F \sempc{\tau_2}$.
+	Thus, by the CBPV typing rules, this typing holds.
 \end{itemize}
-
-Now, assume $\Gamma \vdash_{\pc} e : \tau$.
-% TODO
-\begin{itemize}
-	\item {\bf Case:} $e = x$.
-
-	\item {\bf Case:} $e = \lambda x : \tau .\, e'$.
-	
-	\item {\bf Case:} $e = (\letc x = e_1 \inc e_2)$.
-	
-	\item {\bf Case:} $e = e_1\, e_2$.
-	
-	\item {\bf Case:} $e = \rand\!$.
-	
-	\item {\bf Case:} $e = \coin\!$.
-	
-	\item {\bf Case:} $e = \inl_{\tau_1 + \tau_2}\, e$.
-	
-	\item {\bf Case:} $e = \inr_{\tau_1 + \tau_2}\, e$.
-	
-	\item {\bf Case:} $e = (e_1, e_2)$.
-	
-	\item {\bf Case:} $e = {\bf \#1}\, e$.
-	
-	\item {\bf Case:} $e = {\bf \#2}\, e$.
-	
-	\item {\bf Case:} $e = e_1 \toc x \inc e_2$.
-	
-\end{itemize}
-
 \end{proof}
 
 \begin{theorem}
