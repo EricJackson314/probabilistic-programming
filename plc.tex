@@ -255,6 +255,93 @@ and perfectly correlated sampling, respectively.
 	\end{equation*}
 
 \subsection{Static Semantics}
+\begin{multicols}{2}
+\subsubsection*{Unit}
+% UNIT
+\begin{equation*}
+	\inferrule{\,}{\Gamma \vdash () : \unit}
+\end{equation*}
+
+\subsubsection*{Functions and Application}
+% Function
+\begin{equation*}
+	\inferrule{\Gamma_{x : \tau} \vdash e : \tau'}
+	{\Gamma \vdash \lambda x : \tau.\, e : \tau \to \tau'}
+\end{equation*}
+
+% Let Expression
+\begin{equation*}
+	\inferrule{\Gamma \vdash e_1 : \tau' \\ \Gamma_{x : \tau'} \vdash e_2 : \tau}
+	{\Gamma \vdash \letc x = e_1 \inc e_2 : \tau}
+\end{equation*}
+
+% Application
+\begin{equation*}
+	\inferrule{\Gamma \vdash e_1 : \tau \to \tau' \\ \Gamma \vdash e_2 : \tau}
+	{\Gamma \vdash e_1\, e_2 : \tau'}
+\end{equation*}
+
+\subsubsection*{To}
+% to
+\begin{equation*}
+	\inferrule{\Gamma \vdash e_1 : \tau' \\ \Gamma_{x : \tau'} \vdash e_2 : \tau}
+	{\Gamma \vdash e_1 \toc x \inc e_2 : \tau}
+\end{equation*}
+
+\columnbreak
+\subsubsection*{Products}
+% Product
+\begin{equation*}
+	\inferrule{\Gamma \vdash e_1 : \tau_1\\ \Gamma \vdash e_2 : \tau_2}
+	{\Gamma \vdash (e_1, e_2) : \tau_1 \times \tau_2}
+\end{equation*}
+
+% proj-1
+\begin{equation*}
+	\inferrule{\Gamma \vdash e : \tau_1 \times \tau_2 }
+	{\Gamma \vdash \1 e : \tau_1}
+\end{equation*}
+
+% proj-2
+\begin{equation*}
+	\inferrule{\Gamma \vdash e : \tau_1 \times \tau_2 }
+	{\Gamma \vdash \2 e : \tau_2}
+\end{equation*}
+
+\subsubsection*{Sums}
+% In-Left
+\begin{equation*}
+	\inferrule{\Gamma \vdash e : \tau_1}
+	{\Gamma \vdash \inl_{\tau_1 + \tau_2} e : \tau_1 + \tau_2}
+\end{equation*}
+
+% In-Right
+\begin{equation*}
+	\inferrule{\Gamma \vdash e : \tau_2}
+	{\Gamma \vdash \inr_{\tau_1 + \tau_2} e : \tau_1 + \tau_2}
+\end{equation*}
+
+% Cases
+\begin{equation*}
+	\inferrule{\Gamma \vdash e_1 : \tau_1 + \tau_2 \\ 
+	\Gamma \vdash e_2 : \tau_1 \to \tau \\
+	\Gamma \vdash e_3 : \tau_2 \to \tau }
+	{\Gamma \vdash \case{e_1}{e_2}{e_3} : \tau}
+\end{equation*}
+
+\subsubsection*{Random Variables}
+% Coin
+\begin{equation*}
+	\inferrule{\,}
+	{\Gamma \vdash \coin : \R}
+\end{equation*}
+
+% Rand
+\begin{equation*}
+	\inferrule{\,}
+	{\Gamma \vdash \rand : \R}
+\end{equation*}
+\end{multicols}
 
 \newpage
 \section{Translating $\lambda_{\iid}$ and $\lambda_{\pc}$ to CBPV}
@@ -290,7 +377,7 @@ These translations are essentially identical to the translations of CBN and CBV 
 			\sempc{\R} &\triangleq \R \\
 			\sempc{\tau_1 \to \tau_2} &\triangleq U (\sempc{\tau_1} \to F\sempc{\tau_2}) \\
 			\sempc{\tau_1 + \tau_2} &\triangleq U\sempc{\tau_1} + U\sempc{\tau_2} \\
-			\sempc{\tau_1 \times \tau_2} &\triangleq U(F\sempc{\tau_1} \times F\sempc{\tau_2}) \\
+			\sempc{\tau_1 \times \tau_2} &\triangleq \sempc{\tau_1} \times \sempc{\tau_2} \\
 		\end{split}
 	\end{equation*}
 \end{multicols}
@@ -318,10 +405,11 @@ to CBPV.
 			\semiid{(e_1, e_2)} &\triangleq \\
 			\semiid{\1 e} &\triangleq \\
 			\semiid{\2 e} &\triangleq \\
-			\semiid{e_1 \toc x \inc e2} &\triangleq \letc x = \sempc{e_1} \inc \semiid{e_2} \\
+			\semiid{e_1 \toc x \inc e_2} &\triangleq \letc x = \sempc{e_1} \inc \semiid{e_2} \\
 		\end{split}
 	\end{equation*}
-	
+
+\newpage	
 % CBV
 \subsubsection*{$\pc$}	
 \hrule\hrule
@@ -340,10 +428,10 @@ to CBPV.
 			\sempc{\inr_{\tau_1 + \tau_2} e} &\triangleq \sempc{e} \toc z.\, \produce \inr z \\
 			\sempc{\case{e_1}{e_2}{e_3}} &\triangleq
 			\sempc{e_1} \toc z.\, \pmc z \as \{\inl x.\,\sempc{e_2},\,\inl y,\, \sempc{e_3}\}\\
-			\sempc{(e_1, e_2)} &\triangleq \produce \thunk (\sempc{e_1},\, \sempc{e_2}) \\
-			\sempc{\1 e} &\triangleq \sempc{e} \toc x.\, \1 (\force x) \\
-			\sempc{\2 e} &\triangleq \sempc{e} \toc x.\, \2 (\force x) \\
-						\sempc{e_1 \toc x \inc e_2} &\triangleq \\
+			\sempc{(e_1, e_2)} &\triangleq \produce (\sempc{e_1},\, \sempc{e_2}) \\
+			\sempc{\1 e} &\triangleq \pmc \sempc{e} \as (x, y).\, \produce x \\
+			\sempc{\2 e} &\triangleq \pmc \sempc{e} \as (x, y).\, \produce y \\
+			\sempc{e_1 \toc x \inc e_2} &\triangleq \\
 		\end{split}
 	\end{equation*}
 
@@ -464,7 +552,7 @@ $\Gamma \vdash_{\iid} e : \tau$ and $\Gamma \vdash_{\pc} e : \tau$.
 		\sempc{\Gamma} \vdash_c \sempc{(e_1,\, e_2)}: F \sempc{\tau_1 \times \tau_2}
 		=
 		\sempc{\Gamma} 
-		\vdash_c \produce \thunk (\sempc{e_1},\, \sempc{e_2}) : 
+		\vdash_c \produce (\sempc{e_1},\, \sempc{e_2}) : 
 		F U (F \sempc{\tau_1},\, F \sempc{\tau_2})
 	\end{equation*}
 	By the inductive hypothesis,

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7050 64-bit) (preloaded format=pdflatex 2019.6.22)  3 MAY 2021 13:56
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7050 64-bit) (preloaded format=pdflatex 2019.6.22)  24 MAY 2021 09:09
 entering extended mode
 **./plc.tex
 (plc.tex
@@ -253,16 +253,16 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 {C:/Users/ejackson/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2] [3] 
 [4]
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 360.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 448.
 
 
 ("C:\Program Files\MiKTeX 2.9\tex/latex/base\omscmr.fd"
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/it' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 360.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 448.
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 376.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 464.
  [5] [6] (plc.aux) ) 
 Here is how much of TeX's memory you used:
  2123 strings out of 492895
@@ -288,7 +288,7 @@ les/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Program Files/MiKT
 eX 2.9/fonts/type1/public/amsfonts/cm/cmti12.pfb><C:/Program Files/MiKTeX 2.9/f
 onts/type1/public/amsfonts/symbols/msam10.pfb><C:/Program Files/MiKTeX 2.9/font
 s/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on plc.pdf (6 pages, 186074 bytes).
+Output written on plc.pdf (6 pages, 187327 bytes).
 PDF statistics:
  89 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
